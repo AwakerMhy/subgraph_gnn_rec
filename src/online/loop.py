@@ -37,7 +37,7 @@ def _drop_isolated_nodes(
     if node_feat is not None:
         node_feat = node_feat[active]
     removed = n_nodes - new_n
-    print(f"[preprocess] 删除 {removed} 个孤立节点，剩余 {new_n} 个节点")
+    print(f"[preprocess] 删除 {removed} 个孤立节点，剩余 {new_n} 个节点", flush=True)
     return edges_df, new_n, node_feat
 
 
@@ -131,10 +131,29 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
     if node_feat is not None and node_feat_dim == 0:
         node_feat_dim = node_feat.shape[1]
 
-    if model_type == "mlp":
+    trainer_cfg = cfg.get("trainer", {})
+    total_rounds = cfg.get("total_rounds", 100)
+    update_every = trainer_cfg.get("update_every_n_rounds", 1)
+
+    if model_type == "random":
+        model = None
+        optimizer = None
+        trainer = None
+        scheduler = None
+    elif model_type == "mlp":
         from src.baseline.mlp_link import MLPLinkScorer, extract_topo_features  # noqa: PLC0415
         _mlp_topo_dim = 3 + node_feat_dim
         model = MLPLinkScorer(in_dim=_mlp_topo_dim, hidden_dim=model_cfg.get("hidden_dim", 64)).to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+        )
+        trainer = None
     else:
         model = LinkPredModel(
             hidden_dim=model_cfg.get("hidden_dim", 64),
@@ -142,31 +161,26 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             encoder_type=model_cfg.get("encoder_type", "last"),
             node_feat_dim=node_feat_dim,
         ).to(device)
-
-    trainer_cfg = cfg.get("trainer", {})
-    optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
-    total_rounds = cfg.get("total_rounds", 100)
-    update_every = trainer_cfg.get("update_every_n_rounds", 1)
-    sched_cfg = trainer_cfg.get("scheduler", {})
-    scheduler = build_scheduler(
-        optimizer,
-        total_steps=max(total_rounds // update_every, 1),
-        warmup_steps=sched_cfg.get("warmup_rounds", 5),
-        min_lr=sched_cfg.get("min_lr", 1e-5),
-        strategy=sched_cfg.get("strategy", "cosine_warmup"),
-    )
-
-    trainer = OnlineTrainer(
-        model=model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        device=device,
-        max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
-        max_neighbors=trainer_cfg.get("max_neighbors", 30),
-        node_feat=node_feat,
-        min_batch_size=trainer_cfg.get("min_batch_size", 4),
-        grad_clip=trainer_cfg.get("grad_clip", 1.0),
-    )
+        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+        )
+        trainer = OnlineTrainer(
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
+            max_neighbors=trainer_cfg.get("max_neighbors", 30),
+            node_feat=node_feat,
+            min_batch_size=trainer_cfg.get("min_batch_size", 4),
+            grad_clip=trainer_cfg.get("grad_clip", 1.0),
+        )
 
     replay_cfg = cfg.get("replay", {})
     replay = ReplayBuffer(replay_cfg.get("capacity", 0))
@@ -219,7 +233,11 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 recs[u] = []
                 continue
             cand_nodes = [v for v, _ in cands]
-            if model_type == "mlp":
+            if model_type == "random":
+                perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
+                recs[u] = [cand_nodes[int(i)] for i in perm]
+                continue
+            elif model_type == "mlp":
                 from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
                 feat = extract_topo_features(adj, n_nodes, node_feat, device)
                 u_feat = feat[[u]].expand(len(cand_nodes), -1)
@@ -235,7 +253,9 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         feedback = env.step(recs, t)
 
         # 在线更新：冷启动用户的 rejected 不参与训练（随机负样本信噪比低）
-        if t % update_every == 0:
+        if model_type == "random":
+            train_result = {}
+        elif t % update_every == 0:
             recall_rejected = [(u, v) for u, v in feedback.rejected
                                if u not in cold_start_users]
             pos_r, neg_r = replay.sample(replay_cfg.get("sample_n", 0))
@@ -283,12 +303,13 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 f"prec@K={metrics.get('precision_k', 0):.4f}  "
                 f"accepted={int(metrics['n_accepted'])}  "
                 f"loss={train_result.get('loss', float('nan')):.4f}  "
-                f"({elapsed:.1f}s)"
+                f"({elapsed:.1f}s)",
+                flush=True,
             )
 
     df = evaluator.history_df()
     df.to_csv(out_dir / "rounds.csv", index=False)
-    print(f"\n结果已写入 {out_dir}/rounds.csv")
+    print(f"\n结果已写入 {out_dir}/rounds.csv", flush=True)
     return df
 
 
