@@ -1,0 +1,9 @@
+# Epinions 信任网络数据集配置
+# 来源：SNAP https://snap.stanford.edu/data/soc-Epinions1.html
+# 约 75k 节点、508k 有向边，无原生时间戳（以边序号作代理）
+
+dataset:
+  name: epinions
+  raw_file: soc-Epinions1.txt
+  has_native_node_feature: false
+  use_node_attr: false

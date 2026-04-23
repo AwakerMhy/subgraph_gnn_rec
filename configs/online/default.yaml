@@ -1,0 +1,58 @@
+dataset:
+  type: sbm
+  params:
+    n_nodes: 500
+    n_communities: 5
+    p_in: 0.3
+    p_out: 0.02
+    T: 100
+    edges_per_step: 10
+    seed: 42
+
+init_edge_ratio: 0.05
+user_sample_ratio: 0.10
+total_rounds: 100
+
+recall:
+  method: adamic_adar
+  top_k_recall: 50
+
+recommend:
+  top_k: 10
+
+feedback:
+  p_accept: 1.0
+  cooldown_rounds: 5
+
+trainer:
+  update_every_n_rounds: 1
+  batch_subgraph_max_hop: 2
+  max_neighbors: 30
+  lr: 1.0e-3
+  min_batch_size: 4
+  grad_clip: 1.0
+  scheduler:
+    strategy: cosine_warmup
+    warmup_rounds: 5
+    min_lr: 1.0e-5
+
+model:
+  hidden_dim: 64
+  num_layers: 3
+  encoder_type: last
+  node_feat_dim: 0
+
+replay:
+  capacity: 0
+  sample_n: 0
+
+eval:
+  k_list: [5, 10, 20]
+  graph_every_n: 10
+  degree_bins: 50
+
+runtime:
+  seed: 42
+  device: cuda
+  out_dir: results/online/sbm_default
+  log_every: 1

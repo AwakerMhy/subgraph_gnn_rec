@@ -1,0 +1,9 @@
+# CollegeMsg 数据集配置
+# 来源：SNAP https://snap.stanford.edu/data/CollegeMsg.html
+# 无原生节点属性，使用度特征占位
+
+dataset:
+  name: college_msg
+  raw_file: CollegeMsg.txt
+  has_native_node_feature: false
+  use_node_attr: false         # 覆盖 default.yaml 中的 use_node_attr

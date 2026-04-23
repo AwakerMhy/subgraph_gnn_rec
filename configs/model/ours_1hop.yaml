@@ -1,0 +1,13 @@
+# 消融：改为1度子图（Ours-1hop）
+model:
+  use_node_attr: true
+  gnn_type: GAT
+  gnn_layers: 1
+  gnn_heads: 4
+  hidden_dim: 64
+  label_dim: 32
+  dropout: 0.1
+
+subgraph:
+  max_hop: 1
+  max_neighbors_per_node: 30

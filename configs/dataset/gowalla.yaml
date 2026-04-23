@@ -1,0 +1,9 @@
+# Gowalla 社交网络数据集配置
+# 来源：SNAP https://snap.stanford.edu/data/loc-gowalla.html
+# 约 196k 节点、190 万有向友谊边，无原生时间戳（行序号作代理），无原生节点属性
+
+dataset:
+  name: gowalla
+  raw_file: loc-gowalla_edges.txt
+  has_native_node_feature: false
+  use_node_attr: false

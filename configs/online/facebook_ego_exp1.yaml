@@ -1,0 +1,68 @@
+dataset:
+  type: facebook_ego
+  path: data/processed/facebook_ego/edges.csv
+
+init_edge_ratio: 0.05
+init_strategy: stratified
+total_rounds: 100
+
+user_selector:
+  strategy: composite
+  alpha: 0.5
+  beta: 2.0
+  lam: 0.1
+  gamma: 2.0
+  w: 3
+  sample_ratio: 0.10
+
+recall:
+  method: mixture
+  components:
+    - {name: common_neighbors, top_k: 30}
+    - {name: adamic_adar, top_k: 10}
+    - {name: community_random, top_k: 10}
+  top_k_recall: 50
+
+recommend:
+  top_k: 10
+  cold_start_random_fill: true
+
+feedback:
+  p_pos: 0.8
+  p_neg: 0.02
+  cooldown_rounds: 5
+  cooldown_mode: decay
+
+trainer:
+  update_every_n_rounds: 1
+  batch_subgraph_max_hop: 2
+  max_neighbors: 30
+  lr: 1.0e-3
+  min_batch_size: 4
+  grad_clip: 1.0
+  scheduler:
+    strategy: cosine_warmup
+    warmup_rounds: 5
+    min_lr: 1.0e-5
+
+model:
+  type: gnn
+  hidden_dim: 32
+  num_layers: 3
+  encoder_type: last
+  node_feat_dim: 0
+
+replay:
+  capacity: 200
+  sample_n: 32
+
+eval:
+  k_list: [5, 10, 20]
+  graph_every_n: 10
+  degree_bins: 50
+
+runtime:
+  seed: 42
+  device: cpu
+  out_dir: results/online/facebook_ego_exp1
+  log_every: 5

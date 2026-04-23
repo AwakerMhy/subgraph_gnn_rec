@@ -1,0 +1,32 @@
+# 数据文件
+data/raw/
+data/processed/
+data/synthetic/
+
+# 结果与缓存
+results/checkpoints/
+results/logs/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# 环境
+.env
+*.key
+credentials*.json
+secrets/
+
+# DGL 子图缓存
+*.bin
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# 依赖锁（可选提交）
+# requirements.lock
+# environment.yml

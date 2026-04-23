@@ -1,0 +1,8 @@
+# TGAT baseline 配置（时序 GNN，作为上界参考）
+model:
+  name: tgat
+  hidden_dim: 64
+  gnn_layers: 2
+  n_heads: 2
+  dropout: 0.1
+  time_dim: 16         # 时间编码维度

@@ -1,0 +1,9 @@
+# Bitcoin-OTC 数据集配置
+# 来源：SNAP https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html
+# 无节点属性，边权重丢弃，使用度特征占位
+
+dataset:
+  name: bitcoin_otc
+  raw_file: soc-sign-bitcoinotc.csv
+  has_native_node_feature: false
+  use_node_attr: false

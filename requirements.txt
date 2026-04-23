@@ -1,0 +1,18 @@
+# 核心依赖（在 conda 环境 gnn 中安装）
+# conda create -n gnn python=3.10
+# conda activate gnn && pip install -r requirements.txt
+
+torch>=2.0
+# DGL：根据 CUDA 版本选择安装命令
+# CUDA 11.8: pip install dgl -f https://data.dgl.ai/wheels/repo.html
+# CUDA 12.1: pip install dgl -f https://data.dgl.ai/wheels/repo.html
+# 或 conda install -c dglteam/label/cu118 dgl
+
+numpy
+pandas
+scipy
+scikit-learn
+pyyaml
+tqdm
+matplotlib
+jupyter

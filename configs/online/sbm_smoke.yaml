@@ -1,0 +1,56 @@
+dataset:
+  type: sbm
+  params:
+    n_nodes: 200
+    n_communities: 4
+    p_in: 0.4
+    p_out: 0.05
+    T: 200
+    edges_per_step: 20
+    seed: 42
+
+init_edge_ratio: 0.05
+user_sample_ratio: 0.20
+total_rounds: 3
+
+recall:
+  method: common_neighbors
+  top_k_recall: 20
+
+recommend:
+  top_k: 5
+
+feedback:
+  p_accept: 1.0
+  cooldown_rounds: 2
+
+trainer:
+  update_every_n_rounds: 1
+  batch_subgraph_max_hop: 2
+  max_neighbors: 15
+  lr: 1.0e-3
+  min_batch_size: 1
+  grad_clip: 1.0
+  scheduler:
+    strategy: constant
+
+model:
+  hidden_dim: 32
+  num_layers: 2
+  encoder_type: last
+  node_feat_dim: 0
+
+replay:
+  capacity: 0
+  sample_n: 0
+
+eval:
+  k_list: [5]
+  graph_every_n: 1
+  degree_bins: 20
+
+runtime:
+  seed: 42
+  device: cpu
+  out_dir: results/online/sbm_smoke
+  log_every: 1

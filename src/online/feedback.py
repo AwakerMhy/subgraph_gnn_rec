@@ -1,0 +1,47 @@
+"""src/online/feedback.py — 用户反馈模拟器。"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+import numpy as np
+
+
+@dataclass
+class Feedback:
+    accepted: list[tuple[int, int]] = field(default_factory=list)
+    rejected: list[tuple[int, int]] = field(default_factory=list)
+    recs: dict[int, list[int]] = field(default_factory=dict)
+
+
+class FeedbackSimulator:
+    """对推荐结果做概率化伯努利采样，决定哪些边被用户接受。
+
+    (u,v) ∈ G*：以 p_pos 接受；(u,v) ∉ G*：以 p_neg 接受（探索性连接）。
+    p_neg=0.0 时退化为旧行为（仅 G* 内的边可能被接受）。
+    """
+
+    def __init__(
+        self,
+        star_edge_set: set[tuple[int, int]],
+        p_pos: float = 1.0,
+        p_neg: float = 0.0,
+        rng: np.random.Generator | None = None,
+        # 向后兼容：p_accept 映射到 p_pos
+        p_accept: float | None = None,
+    ) -> None:
+        self._star = star_edge_set
+        self._p_pos = p_accept if p_accept is not None else p_pos
+        self._p_neg = p_neg
+        self._rng = rng or np.random.default_rng(42)
+
+    def simulate(self, recs: dict[int, list[int]]) -> Feedback:
+        fb = Feedback(recs=recs)
+        for u, vs in recs.items():
+            for v in vs:
+                in_star = (u, v) in self._star
+                p = self._p_pos if in_star else self._p_neg
+                if p >= 1.0 or self._rng.random() < p:
+                    fb.accepted.append((u, v))
+                else:
+                    fb.rejected.append((u, v))
+        return fb

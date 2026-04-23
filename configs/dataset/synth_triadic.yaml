@@ -1,0 +1,13 @@
+# 合成数据集：三角闭合生成器
+dataset:
+  name: synth_triadic
+  generator: triadic
+  has_native_node_feature: true
+  use_node_attr: true
+
+generator:
+  n_nodes: 400
+  base_p: 0.01
+  triadic_bonus: 0.4
+  T: 80
+  seed: 42

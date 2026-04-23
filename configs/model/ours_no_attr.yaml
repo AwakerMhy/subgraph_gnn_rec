@@ -1,0 +1,9 @@
+# 消融：去掉属性编码器（Ours-NoAttr）
+model:
+  use_node_attr: false
+  gnn_type: GAT
+  gnn_layers: 2
+  gnn_heads: 4
+  hidden_dim: 64
+  label_dim: 32
+  dropout: 0.1

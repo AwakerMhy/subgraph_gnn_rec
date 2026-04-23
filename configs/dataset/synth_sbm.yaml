@@ -1,0 +1,15 @@
+# 合成数据集：SBM 生成器
+dataset:
+  name: synth_sbm
+  generator: sbm
+  has_native_node_feature: true
+  use_node_attr: true
+
+generator:
+  n_nodes: 500
+  n_communities: 5
+  p_in: 0.3
+  p_out: 0.02
+  T: 100
+  edges_per_step: 10
+  seed: 42

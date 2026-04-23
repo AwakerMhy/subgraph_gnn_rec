@@ -1,0 +1,268 @@
+# PROGRESS — 当前任务进度
+
+> 创建时间：2026-04-08 15:30
+> 最后更新：2026-04-23 15:00
+
+---
+
+## [在线学习仿真：CollegeMsg 全量运行]
+- 状态：进行中
+- 开始时间：2026-04-23
+- 配置：configs/online/college_msg_full.yaml（mixture 召回+composite 用户+p_neg=0.02+decay+replay=200）
+- [ ] 步骤 1：dry_run 验证（✅ CPU/CUDA 均通过，1 轮 coverage=0.0684 prec@K=0.0373）
+- [ ] 步骤 2：100 轮完整仿真（🟡 运行中，CUDA，后台任务 bzqj85e74）
+- [ ] 步骤 3：读取 results/online/college_msg_full/rounds.csv，分析指标趋势
+- 输出路径：results/online/college_msg_full/rounds.csv
+- 下一步行动：等待 100 轮完成，查看 coverage/prec@K/loss 趋势
+
+---
+
+## [子图设计迭代：ego-graph + 公共邻居方案]
+- 状态：进行中
+- 开始时间：2026-04-22
+- 当前进度：第 3 步 / 共 3 步（已完成）
+- [x] 步骤 1：实现新设计（ego-graph + CN 融合，1-hop 采样）
+- [x] 步骤 2：全 30-epoch 训练对比（CollegeMsg, simulated_recall）
+- [x] 步骤 3：系统对比实验（两种设计 × 多数据集）
+  - [x] CollegeMsg × ego_cn × 30ep（val MRR=0.1934，Hits@10=0.2887）
+  - [x] CollegeMsg × bfs_2hop（烟测估计 MRR≈0.048）
+  - [x] bitcoin_otc × bfs_2hop × 30ep（**val MRR=0.2849**）
+  - [x] bitcoin_otc × ego_cn × 30ep（val MRR=0.2328，早停ep14）
+  - [x] email_eu × bfs_2hop × 30ep（**val MRR=0.1958**）
+  - [x] email_eu × ego_cn × 30ep（val MRR=0.1714，早停ep21）
+- 状态：✅ 已完成
+- 关键发现：ego_cn 在 CollegeMsg（稠密小图）占优；bfs_2hop 在 bitcoin_otc/email_eu（稀疏大图）占优
+- 已变更文件：src/graph/subgraph.py
+
+---
+
+## [hidden_dim 敏感性消融实验]
+- 状态：✅ 已完成
+- 开始时间：2026-04-23
+- 完成时间：2026-04-23
+- 固定配置：CollegeMsg × ego_cn × simulated_recall × 30ep（patience=10）× seed=42
+- [x] hidden_dim=4
+- [x] hidden_dim=8
+- [x] hidden_dim=16
+- [x] hidden_dim=32
+- [x] hidden_dim=64（基线）
+
+### 结果表
+
+| hidden_dim | val MRR | vs 64 |
+|---|---|---|
+| 4  | 0.1384 | -28.4% |
+| 8  | 0.1738 | -10.1% |
+| 16 | 0.1853 | -4.2%  |
+| 32 | 0.1865 | -3.6%  |
+| **64** | **0.1934** | 基线 |
+
+### 结论
+- 32→64 边际收益仅 0.4%，**帕累托点在 32**
+- 模型未过参数化（64 仍是最优），无欠容量迹象
+- 后续实验可用 hidden_dim=64 作为默认配置，如需轻量版取 32
+
+---
+
+## [新数据集接入：Facebook/Twitch/LastFM/Epinions/ogbl-collab]
+- 状态：进行中
+- 开始时间：2026-04-23
+- [x] 创建 loader：facebook_ego.py / twitch_gamers.py / lastfm_asia.py / ogbl_collab.py
+- [x] 下载 + 预处理：facebook_ego（4039节点/176468边）
+- [x] 下载 + 预处理：lastfm_asia（7624节点/55612边）
+- [x] 下载 + 预处理：epinions（75879节点/508837边）
+- [ ] 下载 + 预处理：twitch_gamers（zip 下载中）
+- [ ] 预处理：ogbl_collab（需 pip install ogb）
+- [x] 下载 + 预处理：twitch_gamers（168k节点/13.6M边）
+- [x] 下载 + 预处理：ogbl_collab（235k节点/1.9M边）
+- [x] 训练：facebook_ego × ego_cn × random_split × 30ep（✅ val MRR=0.9402）
+- [x] 训练：lastfm_asia × ego_cn × 30ep（✅ val MRR=0.9663）
+- [ ] 训练：epinions × ego_cn × temporal_split × 30ep（🟡 运行中，修复边划分）
+- [ ] 训练：twitch_gamers × ego_cn × 30ep（🟡 运行中）
+- [ ] 训练：ogbl_collab × ego_cn × temporal_split × 30ep（⏳ 排队）
+- 下一步行动：等待 epinions/twitch 完成后汇总新数据集对比表
+
+---
+
+## [encoder_type 消融：GIN-last vs layer_concat vs layer_sum]
+- 状态：进行中
+- 开始时间：2026-04-23
+- 固定配置：CollegeMsg × ego_cn × simulated_recall × hidden_dim=64 × seed=42
+- [ ] encoder_type=last（🟡 运行中）
+- [ ] encoder_type=layer_concat
+- [ ] encoder_type=layer_sum
+- 下一步行动：等待 3 个 encoder 完成，对比 MRR/Hits@K
+
+### 烟测结果对比（100 样本，1 epoch，CollegeMsg）
+| 指标 | 2-hop BFS | ego+CN | 改进 |
+|---|---|---|---|
+| tr_auc | 0.5248 | 0.4866 | ↓1.7% |
+| MRR | 0.0478 | 0.0949 | ↑98% |
+| Hits@10 | 0.0909 | 0.1818 | ↑100% |
+
+### 完整训练结果（2000 样本，30 epoch 早停于 21，CollegeMsg，simulated_recall）
+| 指标 | 2-hop BFS (烟测估计) | ego+CN 30ep | 改进 |
+|---|---|---|---|
+| val MRR | 0.0478 | **0.1934** | +305% |
+| Hits@10 | 0.0909 | **0.2887** | +218% |
+| val tr_auc | ~0.52 | 0.6365 | +22% |
+- 最佳 epoch：11，checkpoint：`results/checkpoints/cmp_ego_cn_30ep_best.pt`
+
+---
+
+## [两层图 + 模拟召回框架 — Step 1-6 实现]
+- 状态：已完成
+- 开始时间：2026-04-17
+- 完成时间：2026-04-17
+- [x] Step 1: `src/graph/edge_split.py::filter_first_time_edges`（首次边过滤）
+- [x] Step 3: `TwoLayerEdgeSet` + `temporal_mask_split` / `random_mask_split` / `build_two_layer`
+- [x] Step 4: `src/recall/` 包（`base.py`, `heuristic.py`, `registry.py`）— CN + AA 召回
+- [x] Step 5: `compute_reciprocity_labels`（互惠性标签，备用）
+- [x] Step 6: `src/utils/metrics.py` 扩展 MRR / NDCG@K / `compute_ranking_metrics`
+- [x] `src/train.py` 集成：`RecallDataset`, `eval_mrr_epoch`, `--protocol` 分支, `_run_simulated_recall`
+- [x] 端到端冒烟测试（CollegeMsg × 3 epoch）：MRR=0.0996 >> 1/100，无泄露断言通过
+- 已变更文件：src/graph/edge_split.py, src/recall/\*, src/utils/metrics.py, src/train.py, configs/default.yaml, src/dataset/base.py
+- 测试：tests/test_edge_split.py（23例）, tests/test_recall.py（21例）, tests/test_metrics.py（新增11例）— 97例全部通过
+
+---
+
+## [在线学习仿真框架 — src/online/ 新包]
+- 状态：已完成
+- 开始时间：2026-04-20
+- 完成时间：2026-04-20
+- [x] `src/online/static_adj.py`：StaticAdjacency（duck-type TimeAdjacency，O(1) 动态加边）
+- [x] `src/online/env.py`：OnlineEnv（G*/G_t/cooldown/用户采样/图演化）
+- [x] `src/online/feedback.py`：FeedbackSimulator（伯努利接受）
+- [x] `src/online/trainer.py`：OnlineTrainer（子图批量打分 + BCE 梯度更新）
+- [x] `src/online/replay.py`：ReplayBuffer（capacity=0 时 no-op）
+- [x] `src/online/evaluator.py`：RoundMetrics（Precision/MRR/coverage/聚类系数/degree KL）
+- [x] `src/online/schedule.py`：build_scheduler（cosine_warmup/constant/step）
+- [x] `src/online/loop.py`：run_online_simulation 主循环
+- [x] `configs/online/`：default.yaml / sbm_smoke.yaml / college_msg.yaml
+- [x] `scripts/run_online_sim.py`：CLI 入口
+- [x] `tests/test_online.py`：10/10 单元测试通过
+- [x] 端到端烟测（sbm_smoke，3 轮）：无异常，rounds.csv 正常写出
+- 已变更文件：src/online/\*（新建），configs/online/\*（新建），scripts/run_online_sim.py，tests/test_online.py
+
+---
+
+## [全量对比实验：legacy 协议，bitcoin_otc + email_eu × 2模型]
+- 状态：⏸ 暂时废弃（2026-04-21，专注在线仿真框架）
+- 开始时间：2026-04-20 00:37
+- 配置：epochs=30, full dataset, neg=random:0.5+hard_2hop:0.3+degree:0.2, max_workers=2, seed=42
+- 日志路径：`results/logs/otc_eu_rerun_apr20.log`
+- 结果路径：`results/logs/cmp_bitcoin_otc_*/train.json`、`results/logs/cmp_email_eu_*/train.json`
+
+### 运行进度
+- [x] college_msg / GIN-last（**已放弃**：6 epoch 后 val_auc_mean 单调下降 0.535→0.52，tr_auc≈0.99 严重过拟合，稠密小图无改善空间）
+- [x] college_msg / GraphSAGE（**已放弃**：同上，0.533→0.52）
+- [ ] college_msg / SEAL（跳过，DRNL 在稠密图上失效，见 DECISIONS.md）
+- [ ] bitcoin_otc / GIN-last（🟡 运行中）
+- [ ] bitcoin_otc / GraphSAGE（🟡 运行中）
+- [ ] bitcoin_otc / SEAL（⏳ 排队）
+- [ ] email_eu / GIN-last（⏳ 排队）
+- [ ] email_eu / GraphSAGE（⏳ 排队）
+- [ ] email_eu / SEAL（⏳ 排队）
+- [ ] dnc_email / GIN-last（⏳ 待启动）
+- [ ] dnc_email / GraphSAGE（⏳ 待启动）
+- [ ] bitcoin_alpha / GIN-last（⏳ 待启动）
+- [ ] bitcoin_alpha / GraphSAGE（⏳ 待启动）
+
+### 下一步行动
+等 bitcoin_otc + email_eu 完成后，查看结果；再决定是否启动 dnc_email / bitcoin_alpha
+
+---
+
+## [新增 GraphSAGE / SEAL / TGAT baseline + 对比脚本]
+- 状态：⏸ 暂时废弃（2026-04-21）
+- 开始时间：2026-04-14 10:00
+- [x] src/baseline/graphsage.py
+- [x] src/baseline/seal.py
+- [x] src/baseline/tgat.py
+- [x] src/graph/subgraph.py：添加 store_edge_time 参数
+- [x] src/train.py：添加 --model_type，更新 collate_fn / run_epoch
+- [x] scripts/run_comparison.py：对比脚本
+- 已变更文件：src/baseline/graphsage.py, src/baseline/seal.py, src/baseline/tgat.py, src/graph/subgraph.py, src/train.py, scripts/run_comparison.py
+- 下一步行动：运行对比实验
+
+## [Scorer 架构调整：修复数值爆炸]
+- 状态：⏸ 暂时废弃（2026-04-21）
+- 开始时间：2026-04-10
+- [x] 修改 model.py：scorer_hidden_dim 默认值改为与 hidden_dim 挂钩
+- [ ] 重跑验证（后台任务 bfnkeerpg）
+- 已变更文件：src/model/model.py
+- 下一步行动：等训练完成，观察 bitcoin_otc layer_concat/sum 的 val_loss 是否稳定
+
+---
+
+## [负样本策略修复：全时段排除假负样本]
+- 状态：已完成
+- 开始时间：2026-04-09 15:00
+- [x] 修改 negative_sampling.py：sample_negatives 新增 all_time_adj_out 参数
+- [x] 修改 train.py：预计算全时段邻接表并传入 LinkPredDataset
+- [ ] 重跑 bitcoin_otc × 3 encoder（hidden_dim=8，后台任务 bkbifi7es）
+- 已变更文件：src/graph/negative_sampling.py, src/train.py
+- 下一步行动：等训练完成，对比 val_auc 是否有提升
+
+---
+
+## [Bitcoin-OTC / Email-EU × 3 Encoder 对比实验]
+- 状态：进行中
+- 开始时间：2026-04-09 14:00
+- [x] 修 email_eu.py 路径（文件名 email-EuAll.txt → email-Eu-core-temporal.txt）
+- [x] 修 bitcoin_otc.py timestamp dtype（float64 而非 int64）
+- [x] train.py 增加 --encoder_type 参数，传入 LinkPredModel
+- [x] 预处理 bitcoin_otc（5881节点/35592边）
+- [x] 预处理 email_eu（986节点/24929边）
+- [x] smoke test 6 组全部通过（2 epoch × 100 samples）
+- [ ] 正式训练（30 epoch × 2000 samples，后台运行中 b0ur3ak5x）
+- 已变更文件：src/dataset/real/email_eu.py, src/dataset/real/bitcoin_otc.py, src/train.py, scripts/preprocess_datasets.py, scripts/run_encoder_ablation.py
+- 下一步行动：等待训练完成，汇总结果
+
+---
+
+## [GIN 多变体 Graph Encoder]
+- 状态：已完成
+- 开始时间：2026-04-09
+- [x] gin_encoder.py 新增 GINEncoderLayerConcat（每层 u/v/others mean pooling → concat，输出 L×3H）
+- [x] gin_encoder.py 新增 GINEncoderLayerSum（每层 u/v/others mean pooling → concat 后各层相加，输出 3H）
+- [x] model.py 增加 encoder_type 参数（"last" / "layer_concat" / "layer_sum"），自动适配 scorer in_dim
+- 已变更文件：src/model/gin_encoder.py, src/model/model.py
+- 下一步行动：在消融实验中对比三种 encoder_type
+
+---
+
+## [Phase 4 收尾 — heuristic baseline]
+- 状态：已完成
+- 开始时间：2026-04-09 10:00
+- 完成时间：2026-04-09 12:00
+- [x] 步骤1：tests/test_heuristic.py（10/10 通过）
+- [x] 步骤2：CollegeMsg 预处理（1899节点，59835边）
+- [x] 步骤3：性能优化（prebuilt_adj，拒绝采样，快路径 extract_subgraph）
+- [x] 步骤4：端到端跑通（train 3 epoch + evaluate，AUC=1.0 smoke test）
+- 已变更文件：src/graph/negative_sampling.py, src/graph/subgraph.py, src/train.py, src/evaluate.py, tests/test_heuristic.py
+- 下一步行动：Phase 5 — 扩展数据集（Bitcoin-OTC, Email-EU）
+
+---
+
+## [Phase 3 — 简化模型实现]
+- 状态：已完成
+- 开始时间：2026-04-08 17:00
+- 完成时间：2026-04-08 17:30
+- [x] src/model/gin_encoder.py：GIN 图编码器（2维one-hot输入→mean pooling→graph embedding）
+- [x] src/model/scorer.py：MLP 评分头（graph embedding → sigmoid score）
+- [x] src/model/model.py：顶层组装（one-hot赋值 + GIN + Scorer，含 forward_batch）
+- [x] tests/smoke_model.py：单图/batch smoke test 全部通过
+- 已变更文件：src/model/gin_encoder.py, src/model/scorer.py, src/model/model.py, tests/smoke_model.py
+- 下一步行动：实现 Phase 4 — src/train.py 训练循环
+
+## [Phase 4 — 训练与评估]
+- 状态：进行中
+- 开始时间：2026-04-08 17:30
+- 当前进度：第 3 步 / 共 4 步
+- [x] src/train.py：训练主循环（已完成）
+- [x] src/evaluate.py：测试集评估（已完成）
+- [x] 端到端跑通（合成数据集 sbm，3 epoch smoke test PASSED）
+- [ ] src/baseline/heuristic.py（可选）
+- 已变更文件：src/train.py, src/evaluate.py（修复 max_neighbors_per_node 参数名）
+- 下一步行动：实现 heuristic baseline 或开始 Phase 5 实验

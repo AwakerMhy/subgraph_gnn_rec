@@ -1,0 +1,14 @@
+# 合成数据集：Hawkes 过程生成器
+dataset:
+  name: synth_hawkes
+  generator: hawkes
+  has_native_node_feature: true
+  use_node_attr: true
+
+generator:
+  n_nodes: 300
+  mu: 0.1
+  alpha: 0.5
+  beta: 1.0
+  T: 50
+  seed: 42

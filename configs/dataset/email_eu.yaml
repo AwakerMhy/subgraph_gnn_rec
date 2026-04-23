@@ -1,0 +1,9 @@
+# Email-EU-core-temporal 数据集配置
+# 来源：SNAP https://snap.stanford.edu/data/email-EuAll.html
+# 无节点属性，重复边保留最早时间戳，使用度特征占位
+
+dataset:
+  name: email_eu
+  raw_file: email-EuAll.txt
+  has_native_node_feature: false
+  use_node_attr: false

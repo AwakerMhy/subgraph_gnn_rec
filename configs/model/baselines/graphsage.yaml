@@ -1,0 +1,7 @@
+# GraphSAGE baseline 配置
+model:
+  name: graphsage
+  hidden_dim: 64
+  gnn_layers: 2
+  dropout: 0.1
+  aggregator: mean

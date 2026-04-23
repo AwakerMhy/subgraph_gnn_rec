@@ -1,0 +1,9 @@
+dataset,elapsed_s,hits@10,hits@20,hits@50,model,mrr,ndcg@10,ndcg@20,ndcg@50,protocol,tr_auc,tr_loss,val_ap_hard2hop,val_ap_historical,val_auc_hard2hop,val_auc_historical,val_auc_mean
+college_msg,441.7,,,,GIN,,,,,legacy,0.986,0.1385,0.5415,0.4955,0.5745,0.4918,0.5331
+college_msg,446.3,,,,GraphSAGE,,,,,legacy,0.9792,0.4785,0.5375,0.5035,0.5682,0.5065,0.5374
+college_msg,1214.3,0.2705,0.3934,0.7213,GIN,0.1214,0.1385,0.1698,0.2348,simulated_recall,0.5329,0.082,,,,,
+bitcoin_otc,88.6,,,,GIN,,,,,legacy,0.7929,0.6242,0.5215,0.5054,0.5054,0.5023,0.5039
+college_msg,1679.2,0.2869,0.459,0.7295,GraphSAGE,0.1099,0.1319,0.175,0.2271,simulated_recall,0.5728,0.0772,,,,,
+bitcoin_otc,129.7,,,,GraphSAGE,,,,,legacy,0.9629,0.2349,0.5251,0.5345,0.5431,0.5568,0.55
+bitcoin_otc,2548.1,0.6233,0.7814,0.9395,GIN,0.287,0.3529,0.393,0.4245,simulated_recall,0.8616,0.0991,,,,,
+bitcoin_otc,1925.5,0.5233,0.7442,0.9279,GraphSAGE,0.2198,0.2734,0.3297,0.3663,simulated_recall,0.8209,0.1047,,,,,

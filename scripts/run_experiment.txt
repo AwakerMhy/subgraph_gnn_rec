@@ -1,0 +1,3 @@
+cd C:\Users\12143\Desktop\pythonProject\gnn
+  $env:PYTHONIOENCODING="utf-8"; $env:PYTHONPATH="."
+  C:\conda\envs\gnn\python.exe scripts\run_comparison.py --epochs 20 --batch_size 64 --hidden_dim 32 --num_layers 3 --patience 5 --max_workers 1 --device cuda

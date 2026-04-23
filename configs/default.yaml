@@ -1,0 +1,78 @@
+# configs/default.yaml — 默认超参数（所有实验的基线配置）
+# 禁止在 .py 文件中硬编码任何超参数，统一从此处读取
+
+seed: 42
+
+# ── 训练协议 ──────────────────────────────────────────────────────────────────
+# legacy:            现有协议（sample_negatives_mixed + hard_2hop/historical 评估）
+# simulated_recall:  新协议（两层图 + 模拟召回候选集 + MRR/NDCG 评估）
+protocol: legacy
+
+# ── 数据预处理 ────────────────────────────────────────────────────────────────
+data:
+  first_time_only: false        # true = 只保留每个 (src,dst) 对的最早一条边（Step 1）
+  edge_split:
+    strategy: temporal          # temporal（默认）| random
+    mask_ratio_val: 0.15        # random 策略专用
+    mask_ratio_test: 0.15       # random 策略专用
+
+# ── 模拟召回（simulated_recall 协议专用）────────────────────────────────────
+recall:
+  method: common_neighbors      # common_neighbors | adamic_adar | union
+  top_k: 100
+  min_score: 0.0
+
+model:
+  label_dim: 32
+  hidden_dim: 64
+  gnn_layers: 2
+  gnn_type: GAT          # GAT | GIN | SAGE
+  gnn_heads: 4           # GAT 专用
+  attr_mlp_layers: 2
+  scorer_mlp_layers: 2
+  dropout: 0.1
+  use_node_attr: true    # 无属性数据集（真实数据集）设为 false
+
+subgraph:
+  max_hop: 2
+  max_neighbors_per_node: 30   # 防止高度节点子图爆炸
+
+training:
+  lr: 0.001
+  weight_decay: 1.0e-5
+  epochs: 100
+  batch_size: 64
+  neg_sample_ratio: 1          # 每个正样本对应负样本数
+  neg_strategy: random         # random | degree | hard_2hop
+  loss: bce                    # bce | focal
+  early_stop_patience: 10      # val AUC 连续 N epoch 不提升则停止
+  grad_clip_norm: 1.0
+  save_top_k: 3                # 滚动保留最近 K 个 checkpoint
+  reciprocity_weighting:       # Step 5：互惠性损失加权
+    enabled: false
+    bidir_weight: 2.0          # 双向边（强正样本）权重
+    unidir_weight: 1.0         # 单向边（弱正样本）权重
+  curriculum:                  # Step 8：渐进负样本调度
+    enabled: false
+    schedule: linear           # linear | step
+    epochs_per_stage: 10
+
+evaluation:
+  metrics:                     # simulated_recall 协议下以排序指标为主
+    - mrr
+    - ndcg@10
+    - ndcg@20
+    - hits@10
+    - hits@20
+    - hits@50
+    - auc                      # 保留作对比参考
+    - ap
+  hits_neg_samples: 999        # legacy 协议 Hits@K 每个正样本对应的负样本数
+  ranking_group_by: query_id   # simulated_recall 协议排序指标按 u 节点分组
+
+paths:
+  data_dir: data/processed
+  raw_dir: data/raw
+  cache_dir: data/processed    # 子图缓存位于 data/processed/<dataset>/subgraphs/
+  results_dir: results/logs
+  checkpoint_dir: results/checkpoints
