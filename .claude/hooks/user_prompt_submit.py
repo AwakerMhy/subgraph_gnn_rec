@@ -7,6 +7,8 @@ import sys
 import os
 import json
 
+sys.stdout.reconfigure(encoding='utf-8')
+
 BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def read_file_lines(path, max_lines=None):

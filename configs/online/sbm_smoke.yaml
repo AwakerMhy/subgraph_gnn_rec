@@ -35,8 +35,8 @@ trainer:
     strategy: constant
 
 model:
-  hidden_dim: 32
-  num_layers: 2
+  hidden_dim: 8
+  num_layers: 3
   encoder_type: last
   node_feat_dim: 0
 

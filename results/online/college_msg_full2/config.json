@@ -59,9 +59,9 @@
   },
   "model": {
     "type": "gnn",
-    "hidden_dim": 8,
-    "num_layers": 3,
-    "encoder_type": "last",
+    "hidden_dim": 64,
+    "num_layers": 2,
+    "encoder_type": "layer_concat",
     "node_feat_dim": 0
   },
   "replay": {
@@ -80,7 +80,7 @@
   "runtime": {
     "seed": 42,
     "device": "cuda",
-    "out_dir": "results/online/college_msg_full",
+    "out_dir": "results/online/college_msg_full2",
     "log_every": 1
   }
 }

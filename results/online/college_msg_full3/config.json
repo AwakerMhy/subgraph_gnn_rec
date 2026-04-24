@@ -39,8 +39,8 @@
     "cold_start_random_fill": true
   },
   "feedback": {
-    "p_pos": 0.8,
-    "p_neg": 0.02,
+    "p_pos": 1.0,
+    "p_neg": 0.0,
     "cooldown_rounds": 5,
     "cooldown_mode": "decay"
   },
@@ -80,7 +80,7 @@
   "runtime": {
     "seed": 42,
     "device": "cuda",
-    "out_dir": "results/online/college_msg_full",
+    "out_dir": "results/online/college_msg_full3",
     "log_every": 1
   }
 }

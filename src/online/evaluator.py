@@ -68,9 +68,10 @@ class RoundMetrics:
         accepted_set = set(feedback.accepted)
         n_rec_total = n_accepted_total = 0
 
-        # C2 fix: 排序指标用 G* 做正样本（不受 p_pos 采样噪声影响）
+        # 排序指标用 G* 做正样本（不受 p_pos 采样噪声影响）
         # precision_k / hit_rate 仍用 accepted_set（衡量实际行为）
-        pos_scores_list, neg_scores_list = [], []
+        # recs[u] 已按模型分降序排列，直接用列表位置作为 rank（1-based）
+        pos_ranks_list: list[np.ndarray] = []
 
         for u, vs in recs.items():
             if not vs:
@@ -78,12 +79,12 @@ class RoundMetrics:
             n_rec_total += len(vs)
             n_accepted_total += sum(1 for v in vs if (u, v) in accepted_set)
 
-            # 排序指标：G* 中存在的边为正样本
-            pos_v = [v for v in vs if (u, v) in self._star]
-            neg_v = [v for v in vs if (u, v) not in self._star]
-            if pos_v and neg_v:
-                pos_scores_list.append(np.ones(len(pos_v)))
-                neg_scores_list.append(np.zeros((len(pos_v), len(neg_v))))
+            pos_ranks = np.array(
+                [i + 1 for i, v in enumerate(vs) if (u, v) in self._star],
+                dtype=np.float32,
+            )
+            if pos_ranks.size > 0:
+                pos_ranks_list.append(pos_ranks)
 
         row["precision_k"] = n_accepted_total / n_rec_total if n_rec_total > 0 else 0.0
         row["n_accepted"] = float(n_accepted_total)
@@ -91,15 +92,12 @@ class RoundMetrics:
         row["n_active_users"] = float(len(recs))
         row["n_skipped_users"] = float(sum(1 for vs in recs.values() if not vs))
 
-        if pos_scores_list:
+        if pos_ranks_list:
             mrr_vals: dict[int, list[float]] = {k: [] for k in self._ks}
             hits_vals: list[float] = []
-            for ps, ns in zip(pos_scores_list, neg_scores_list):
-                if ps.size == 0 or ns.size == 0:
-                    continue
-                ranks = (ns > ps[:, None]).sum(axis=1) + 1  # (N_pos,) 1-based
+            for ranks in pos_ranks_list:
                 for k in self._ks:
-                    rr = float(np.where(ranks <= k, 1.0 / ranks.astype(float), 0.0).mean())
+                    rr = float(np.where(ranks <= k, 1.0 / ranks, 0.0).mean())
                     mrr_vals[k].append(rr)
                 hits_vals.append(float((ranks <= self._ks[0]).mean()))
 
