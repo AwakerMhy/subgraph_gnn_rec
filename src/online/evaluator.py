@@ -38,6 +38,21 @@ class RoundMetrics:
         self._deg_star = deg_star
         self._deg_hist_star = self._degree_hist(deg_star)
 
+        # 预建 G_star 和 G_t 供 NX 计算复用（避免每轮重建）
+        try:
+            import networkx as nx
+            self._G_star = nx.DiGraph()
+            self._G_star.add_nodes_from(range(n_nodes))
+            self._G_star.add_edges_from(star_set)
+            self._cc_star = nx.average_clustering(self._G_star)
+        except Exception:
+            self._G_star = None
+            self._cc_star = float("nan")
+
+        self._G_t: "object | None" = None  # 延迟初始化
+        self._G_t_undirected: "object | None" = None
+        self._G_t_edge_count: int = -1  # 上次缓存时的边数
+
     # ── 主接口 ────────────────────────────────────────────────────────────────
 
     def update(
@@ -97,7 +112,7 @@ class RoundMetrics:
             row[f"hits@{self._ks[0]}"] = float(np.mean(hits_vals)) if hits_vals else 0.0
 
         # 新增指标：Hit Rate@K、Coverage@K、Novelty
-        row.update(self._diversity_metrics(recs, accepted_set, adj))
+        row.update(self._diversity_metrics(recs, accepted_set, adj, round_idx))
 
         # 图结构相似度（间隔计算）
         if round_idx % self._graph_every == 0:
@@ -106,6 +121,25 @@ class RoundMetrics:
         self._history.append(row)
         return row
 
+    # ── 辅助：增量更新 G_t 缓存 ────────────────────────────────────────────────
+
+    def _refresh_G_t(self, adj: StaticAdjacency) -> None:
+        """当边数变化时增量更新缓存的有向图和无向图。"""
+        cur_edges = adj.num_edges()
+        if cur_edges == self._G_t_edge_count:
+            return
+        try:
+            import networkx as nx  # noqa: PLC0415
+            if self._G_t is None:
+                self._G_t = nx.DiGraph()
+                self._G_t.add_nodes_from(range(self._n))
+            # add_edges_from 对已存在的边是幂等的，只新增才有效
+            self._G_t.add_edges_from(adj.iter_edges())
+            self._G_t_undirected = self._G_t.to_undirected()
+            self._G_t_edge_count = cur_edges
+        except Exception:
+            pass
+
     # ── 多样性指标 ────────────────────────────────────────────────────────────
 
     def _diversity_metrics(
@@ -113,6 +147,7 @@ class RoundMetrics:
         recs: dict[int, list[int]],
         accepted_set: set[tuple[int, int]],
         adj: StaticAdjacency,
+        round_idx: int = 0,
     ) -> dict[str, float]:
         result: dict[str, float] = {}
         k = self._ks[0]
@@ -135,8 +170,9 @@ class RoundMetrics:
             rec_targets.update(vs[:k])
         result[f"rec_coverage@{k}"] = len(rec_targets) / self._n if self._n > 0 else 0.0
 
-        # Novelty：推荐 (u,v) 在 G_t 中的最短路径长度均值
-        result["novelty"] = self._compute_novelty(recs, adj, k)
+        # Novelty：仅与 _graph_similarity 同频计算，避免每轮 BFS
+        if round_idx % self._graph_every == 0:
+            result["novelty"] = self._compute_novelty(recs, adj, k)
 
         return result
 
@@ -150,10 +186,10 @@ class RoundMetrics:
         """推荐对在 G_t 中的平均最短路径长度（仅取有限样本以控制开销）。"""
         try:
             import networkx as nx  # noqa: PLC0415
-            G = nx.DiGraph()
-            G.add_nodes_from(range(self._n))
-            G.add_edges_from(adj.iter_edges())
-            G_undirected = G.to_undirected()
+            self._refresh_G_t(adj)
+            if self._G_t_undirected is None:
+                return float("nan")
+            G_undirected = self._G_t_undirected
 
             pairs = [(u, v) for u, vs in recs.items() for v in vs[:k]]
             if len(pairs) > max_pairs:
@@ -165,7 +201,7 @@ class RoundMetrics:
                     length = nx.shortest_path_length(G_undirected, u, v)
                     lengths.append(length)
                 except nx.NetworkXNoPath:
-                    pass  # 不连通时忽略
+                    pass
             return float(np.mean(lengths)) if lengths else float("nan")
         except Exception:
             return float("nan")
@@ -175,21 +211,15 @@ class RoundMetrics:
     def _graph_similarity(self, adj: StaticAdjacency) -> dict[str, float]:
         try:
             import networkx as nx  # noqa: PLC0415
+            self._refresh_G_t(adj)
+            if self._G_t is None or self._G_star is None:
+                return {"clustering_diff": float("nan"), "degree_kl": float("nan")}
 
-            G = nx.DiGraph()
-            G.add_nodes_from(range(self._n))
-            G.add_edges_from(adj.iter_edges())
-            cc_t = nx.average_clustering(G)
-
-            G_star = nx.DiGraph()
-            G_star.add_nodes_from(range(self._n))
-            G_star.add_edges_from(self._star)
-            cc_star = nx.average_clustering(G_star)
-
-            deg_t = np.array([d for _, d in G.out_degree()], dtype=np.float32)
+            cc_t = nx.average_clustering(self._G_t)
+            deg_t = np.array([d for _, d in self._G_t.out_degree()], dtype=np.float32)
             kl = self._kl_divergence(self._degree_hist(deg_t.astype(np.int32)), self._deg_hist_star)
 
-            return {"clustering_diff": abs(cc_t - cc_star), "degree_kl": kl}
+            return {"clustering_diff": abs(cc_t - self._cc_star), "degree_kl": kl}
         except Exception:
             return {"clustering_diff": float("nan"), "degree_kl": float("nan")}
 

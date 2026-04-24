@@ -25,6 +25,12 @@ class MixtureRecall(RecallBase):
         for recall, _ in self._components:
             recall.update_graph(round_idx)
 
+    def precompute_for_users(self, users: list[int]) -> None:
+        """委托给支持批量预计算的子召回器（如 PPRRecall）。"""
+        for recall, _ in self._components:
+            if hasattr(recall, "precompute_for_users"):
+                recall.precompute_for_users(users)
+
     def candidates(
         self,
         u: int,

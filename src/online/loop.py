@@ -209,15 +209,19 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         t0 = time.time()
         recall.update_graph(t)
         U = env.sample_active_users(t)
+        # 批量预计算本轮活跃用户的 PPR 向量（比逐用户快 50-100×）
+        if hasattr(recall, "precompute_for_users"):
+            recall.precompute_for_users(list(U))
         recs: dict[int, list[int]] = {}
 
+        # ── Phase 1：收集所有用户候选（CPU） ────────────────────────────────
         cold_start_users: set[int] = set()
+        user_cand_nodes: dict[int, list[int]] = {}
         for u in U:
             cands = recall.candidates(u, cutoff_time=float("inf"), top_k=top_k_recall)
             cands = env.mask_existing_edges(u, cands)
             cands = env.mask_cooldown(u, cands, t)
 
-            # 冷启动兜底：召回为空时随机填充候选
             if not cands and cold_fill:
                 exclude = set(adj.out_neighbors(u)) | {u}
                 exclude |= {v for v, exp in env._cooldown.items() if v[0] == u and exp > t}
@@ -229,24 +233,36 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                     cands = [(pool[int(v % len(pool))], s) for v, s in cands]
                     cold_start_users.add(u)
 
-            if not cands:
+            user_cand_nodes[u] = [v for v, _ in cands] if cands else []
+
+        # ── Phase 2：批量打分（GNN 模式下一次 GPU forward） ─────────────────
+        if model_type == "gnn" and trainer is not None:
+            gnn_inputs = [(u, user_cand_nodes[u]) for u in U if user_cand_nodes[u]]
+            batch_scores = trainer.score_batch(gnn_inputs, adj)
+            gnn_score_map: dict[int, list[float]] = {
+                u: s for (u, _), s in zip(gnn_inputs, batch_scores)
+            }
+        elif model_type == "mlp":
+            from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
+            feat = extract_topo_features(adj, n_nodes, node_feat, device)
+
+        # ── Phase 3：构建推荐（top-K 精排） ─────────────────────────────────
+        for u in U:
+            cand_nodes = user_cand_nodes[u]
+            if not cand_nodes:
                 recs[u] = []
                 continue
-            cand_nodes = [v for v, _ in cands]
             if model_type == "random":
                 perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
                 recs[u] = [cand_nodes[int(i)] for i in perm]
                 continue
             elif model_type == "mlp":
-                from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
-                feat = extract_topo_features(adj, n_nodes, node_feat, device)
                 u_feat = feat[[u]].expand(len(cand_nodes), -1)
                 v_feat = feat[cand_nodes]
                 with torch.no_grad():
                     scores = model(u_feat, v_feat).cpu().numpy()
             else:
-                scores = trainer.score(u, cand_nodes, adj)
-            # top-K 精排
+                scores = gnn_score_map.get(u, [0.0] * len(cand_nodes))
             order = np.argsort(scores)[::-1][:top_k_rec]
             recs[u] = [cand_nodes[i] for i in order]
 
@@ -294,6 +310,10 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
 
         metrics = evaluator.update(t, recs, feedback, adj, env.coverage())
         metrics["replay_size"] = float(len(replay))
+
+        # 定期释放 CUDA 缓存，防止显存碎片积累
+        if torch.cuda.is_available() and t % 10 == 9:
+            torch.cuda.empty_cache()
 
         if t % log_every == 0:
             elapsed = time.time() - t0

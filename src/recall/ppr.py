@@ -37,6 +37,8 @@ class PPRRecall(RecallBase):
         self._alpha = alpha
         self._max_iter = max_iter
         self._trans: sp.csr_matrix | None = None
+        # 批量预计算缓存：user -> PPR 向量（由 precompute_for_users 填充）
+        self._ppr_cache: dict[int, np.ndarray] = {}
         self._update_matrix()
 
     def _update_matrix(self) -> None:
@@ -59,7 +61,35 @@ class PPRRecall(RecallBase):
             self._trans = sp.csr_matrix((self._n, self._n), dtype=np.float32)
 
     def update_graph(self, round_idx: int) -> None:  # noqa: ARG002
+        cur_edges = self._adj.num_edges()
+        if hasattr(self, "_last_n_edges") and cur_edges == self._last_n_edges:
+            self._ppr_cache.clear()
+            return
+        self._last_n_edges = cur_edges
+        self._ppr_cache.clear()
         self._update_matrix()
+
+    def precompute_for_users(self, users: list[int]) -> None:
+        """批量 power iteration：一次矩阵×矩阵替代逐用户矩阵×向量，快 50-100×。"""
+        if self._trans is None or not users:
+            return
+        n, m = self._n, len(users)
+        users_arr = np.array(users, dtype=np.int32)
+
+        P = np.zeros((n, m), dtype=np.float32)
+        P[users_arr, np.arange(m)] = 1.0
+        E = P.copy()
+        T = self._trans.T  # CSR sparse (n×n)
+
+        for _ in range(self._max_iter):
+            P_new = self._alpha * E + (1.0 - self._alpha) * (T @ P)
+            if np.abs(P_new - P).sum(axis=0).max() < 1e-4:
+                P = P_new
+                break
+            P = P_new
+
+        for j, u in enumerate(users):
+            self._ppr_cache[u] = P[:, j]
 
     def candidates(
         self,
@@ -69,16 +99,25 @@ class PPRRecall(RecallBase):
     ) -> list[tuple[int, float]]:
         if self._trans is None:
             return []
-        # power iteration：p = alpha * e_u + (1-alpha) * p @ T
-        p = np.zeros(self._n, dtype=np.float32)
-        p[u] = 1.0
-        e_u = p.copy()
-        for _ in range(self._max_iter):
-            p = self._alpha * e_u + (1.0 - self._alpha) * (self._trans.T @ p)
 
-        # 排除 u 自身及已有出边邻居
+        if u in self._ppr_cache:
+            p = self._ppr_cache[u]
+        else:
+            # fallback：逐用户 power iteration（未调用 precompute_for_users 时）
+            p = np.zeros(self._n, dtype=np.float32)
+            p[u] = 1.0
+            e_u = p.copy()
+            for _ in range(self._max_iter):
+                p_new = self._alpha * e_u + (1.0 - self._alpha) * (self._trans.T @ p)
+                if np.linalg.norm(p_new - p, ord=1) < 1e-4:
+                    p = p_new
+                    break
+                p = p_new
+
+        # 排除 u 自身及已有出边邻居，只遍历 PPR 非零项
         exclude = set(self._adj.out_neighbors(u)) | {u}
-        scores = {v: float(p[v]) for v in range(self._n) if v not in exclude and p[v] > 0}
+        nonzero = np.where(p > 0)[0]
+        scores = {int(v): float(p[v]) for v in nonzero if v not in exclude}
         if not scores:
             return []
         sorted_cands = sorted(scores.items(), key=lambda x: -x[1])

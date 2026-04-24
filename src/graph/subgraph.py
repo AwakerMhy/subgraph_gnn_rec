@@ -78,6 +78,13 @@ class TimeAdjacency:
     def neighbors(self, node: int, cutoff: float) -> list[int]:
         return list(set(self.out_neighbors(node, cutoff)) | set(self.in_neighbors(node, cutoff)))
 
+    def iter_out_neighbors(self, node: int, cutoff: float) -> list[int]:
+        """返回截断时刻前的出边邻居列表，无 timestamp，用于只读迭代。"""
+        if node not in self._out:
+            return []
+        nbrs, times = self._out[node]
+        return nbrs[: bisect_left(times, cutoff)]
+
     def out_edges_at(self, node: int, cutoff: float) -> list[tuple[int, float]]:
         """返回 [(neighbor, timestamp), ...] 供 TGAT 使用。"""
         if node not in self._out:
@@ -202,6 +209,7 @@ def extract_subgraph(
     time_adj: "TimeAdjacency | None" = None,
     node_feat: "torch.Tensor | None" = None,
     subgraph_type: str = "ego_cn",
+    precomputed_nbrs_u: "set[int] | None" = None,
 ) -> "dgl.DGLGraph | None":
     """提取节点对 (u, v) 的局部子图。
 
@@ -222,26 +230,42 @@ def extract_subgraph(
             nodes_v = _time_adj_bfs(v, time_adj, cutoff_time, max_hop, max_neighbors_per_node, rng)
             subgraph_nodes: set[int] = nodes_u | nodes_v
         else:  # ego_cn
-            nbrs_u_list = time_adj.neighbors(u, cutoff_time)
-            nbrs_v_list = time_adj.neighbors(v, cutoff_time)
-            nbrs_u_set = set(nbrs_u_list)
-            nbrs_v_set = set(nbrs_v_list)
-            common_neighbors = nbrs_u_set & nbrs_v_set
-            if len(nbrs_u_set) > max_neighbors_per_node:
-                idx = rng.choice(len(nbrs_u_list), size=max_neighbors_per_node, replace=False)
-                nbrs_u_set = {nbrs_u_list[i] for i in idx}
+            if precomputed_nbrs_u is not None:
+                # 使用调用方预计算并已采样的 N(u)，直接计算公共邻居
+                nbrs_u_set = precomputed_nbrs_u
+                nbrs_v_list = time_adj.neighbors(v, cutoff_time)
+                nbrs_v_set = set(nbrs_v_list)
+                common_neighbors = nbrs_u_set & nbrs_v_set
+            else:
+                nbrs_u_list = time_adj.neighbors(u, cutoff_time)
+                nbrs_v_list = time_adj.neighbors(v, cutoff_time)
+                nbrs_u_set = set(nbrs_u_list)
+                nbrs_v_set = set(nbrs_v_list)
+                common_neighbors = nbrs_u_set & nbrs_v_set
+                if len(nbrs_u_set) > max_neighbors_per_node:
+                    idx = rng.choice(len(nbrs_u_list), size=max_neighbors_per_node, replace=False)
+                    nbrs_u_set = {nbrs_u_list[i] for i in idx}
             subgraph_nodes = {u, v} | nbrs_u_set | common_neighbors
 
         # 边枚举：只取子图内部且 t < cutoff_time 的边
         node_list = sorted(subgraph_nodes)
         global_to_local = {gid: lid for lid, gid in enumerate(node_list)}
         src_local, dst_local, edge_times_list = [], [], []
-        for s in subgraph_nodes:
-            for d, t_e in time_adj.out_edges_at(s, cutoff_time):
-                if d in subgraph_nodes:
-                    src_local.append(global_to_local[s])
-                    dst_local.append(global_to_local[d])
-                    edge_times_list.append(t_e)
+        _has_iter = hasattr(time_adj, "iter_out_neighbors")
+        if not store_edge_time and _has_iter:
+            # 避免创建 (dst, timestamp) tuple，直接迭代邻居 ID
+            for s in subgraph_nodes:
+                for d in time_adj.iter_out_neighbors(s, cutoff_time):
+                    if d in subgraph_nodes:
+                        src_local.append(global_to_local[s])
+                        dst_local.append(global_to_local[d])
+        else:
+            for s in subgraph_nodes:
+                for d, t_e in time_adj.out_edges_at(s, cutoff_time):
+                    if d in subgraph_nodes:
+                        src_local.append(global_to_local[s])
+                        dst_local.append(global_to_local[d])
+                        edge_times_list.append(t_e)
 
     elif prebuilt_adj_out is not None and prebuilt_adj_in is not None:
         # 旧快路径（固定截断，仅用于兼容）
