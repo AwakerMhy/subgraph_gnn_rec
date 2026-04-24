@@ -224,13 +224,12 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
 
             if not cands and cold_fill:
                 exclude = set(adj.out_neighbors(u)) | {u}
-                exclude |= {v for v, exp in env._cooldown.items() if v[0] == u and exp > t}
+                exclude |= env.cooldown_excluded_nodes(u, t)
                 pool = [v for v in range(n_nodes) if v not in exclude]
                 if pool:
                     sample_n = min(cold_fill_k, len(pool))
-                    cands = [(_rng.integers(0, len(pool)).item(), 0.0)
-                             for _ in range(sample_n)]
-                    cands = [(pool[int(v % len(pool))], s) for v, s in cands]
+                    chosen = _rng.choice(len(pool), size=sample_n, replace=False)
+                    cands = [(pool[int(i)], 0.0) for i in chosen]
                     cold_start_users.add(u)
 
             user_cand_nodes[u] = [v for v, _ in cands] if cands else []
@@ -244,7 +243,9 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             }
         elif model_type == "mlp":
             from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
+            # 打分用 t 轮开始时的 adj（env.step 之前）
             feat = extract_topo_features(adj, n_nodes, node_feat, device)
+            _feat_edge_count = adj.num_edges()  # 记录当前边数，训练时按需重算
 
         # ── Phase 3：构建推荐（top-K 精排） ─────────────────────────────────
         for u in U:
@@ -281,7 +282,9 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 neg_pairs = recall_rejected + neg_r
                 train_result = {}
                 if pos_pairs and neg_pairs:
-                    feat = extract_topo_features(adj, n_nodes, node_feat, device)
+                    # 训练用 t 轮结束后的 adj（env.step 已加入新接受边）；仅边数变化时重算
+                    if adj.num_edges() != _feat_edge_count:
+                        feat = extract_topo_features(adj, n_nodes, node_feat, device)
                     pos_u = torch.tensor([u for u, _ in pos_pairs], device=device)
                     pos_v = torch.tensor([v for _, v in pos_pairs], device=device)
                     neg_u = torch.tensor([u for u, _ in neg_pairs], device=device)

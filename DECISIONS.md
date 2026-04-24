@@ -1,9 +1,45 @@
 # DECISIONS — 架构决策记录
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-21
+> 最后更新：2026-04-24
 >
 > **做新决策前必读，遇到看似"奇怪"的设计先查这里。**
+
+---
+
+## [2026-04-24] 评估指标设计：G* 正样本 + 截断 MRR@K + 候选池 coverage
+
+- **背景**：发现三个评估逻辑错误：①MRR@K 实为同一值重复 K 次；②正样本用 accepted_set 受 p_pos 噪声污染；③rec_coverage 分母用全图节点数被 sample_ratio 稀释
+- **决定**：
+  1. **MRR@K**：改为截断 MRR，`mean(1/rank if rank≤k else 0)`，不同 K 有意义差异
+  2. **正样本**：排序指标（MRR/Hits）用 `self._star`（G*）做 ground truth，消除 p_pos 采样噪声；precision_k / hit_rate 仍用 accepted_set（衡量真实行为）
+  3. **rec_coverage@K**：分母改为候选池去重大小，新增 `unique_recs@K` 原始计数，横比数据集时不被 sample_ratio 稀释
+- **原因**：原实现会系统性低估 MRR/Hits（20% 真正样本被当负例），且不同 K 的 MRR@K 完全相同没有区分度
+- **状态**：active
+
+---
+
+## [2026-04-24] Cooldown 双模式语义修复
+
+- **背景**：`env._cooldown` 在 hard 模式存 unlock_round，在 decay 模式存 reject_round，同一张表语义不同；三处逻辑均假设 hard 模式导致 decay 模式下冷启动不排除、定期清理恒清空、模式切换丢失历史
+- **决定**：
+  1. **冷启动排除**：新增 `env.cooldown_excluded_nodes(u, t)` 公开方法，decay 用 `dt < cooldown_rounds`，不再暴露私有属性
+  2. **定期清理**：decay 保留 `reject_round > round_idx - 10*cooldown_rounds` 的条目（衰减到 e⁻¹⁰ 后丢弃）
+  3. **模式切换**：`hard→decay` 精确转换（`reject = unlock - N`），`decay→hard` 反向（`unlock = reject + N`），不清空表
+- **状态**：active
+
+---
+
+## [2026-04-24] 训练速度优化策略
+
+- **背景**：在线仿真每轮时间从 1s 线性增长到 16s（100 轮），主要瓶颈为子图边提取（O(P×d) Python loop）和 CN/AA 召回（190 次 set intersection）
+- **决定**：
+  1. **边提取**：实现 Numba `@njit parallel` 的 `_count/_fill_edges_batched_nb`；Windows SAC 阻止 DLL 时自动 fallback 到 numpy searchsorted
+  2. **CN/AA 召回**：自适应阈值——n≤10k 用 set intersection（小图 scipy overhead 更大），n>10k 用 `A[users]@A` sparse matmul（大图批量摊销）
+  3. **N(u) 构建**：`np.union1d` 替代 `sorted(set|set)`，O(d) 归并
+  4. **UserSelector degree**：`np.diff(CSR indptr)` 替代 Python list comprehension，避免每轮 O(E) 转换
+- **实测（CollegeMsg, 100 轮）**：30 轮后稳定在 ~15s/轮（此前指数增长到 297s/轮）
+- **状态**：active；Numba 启用后预计再快 2-3×
 
 ---
 

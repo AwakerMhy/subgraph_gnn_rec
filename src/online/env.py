@@ -239,15 +239,37 @@ class OnlineEnv:
     def mask_existing_edges(self, u: int, cands: list[tuple[int, float]]) -> list[tuple[int, float]]:
         return [(v, s) for v, s in cands if not self.adj.has_edge(u, v) and v != u]
 
+    def cooldown_excluded_nodes(self, u: int, round_idx: int) -> set[int]:
+        """返回 u 在 round_idx 轮应排除的目标节点（用于冷启动随机填充）。
+
+        hard 模式：unlock_round > round_idx 的节点仍在 cooldown 窗口内。
+        decay 模式：round_idx - reject_round < cooldown_rounds 的节点仍在窗口内。
+        """
+        excluded: set[int] = set()
+        if self._cooldown_mode == "hard":
+            for (src, dst), unlock in self._cooldown.items():
+                if src == u and unlock > round_idx:
+                    excluded.add(dst)
+        else:
+            for (src, dst), reject_round in self._cooldown.items():
+                if src == u and (round_idx - reject_round) < self._cooldown_rounds:
+                    excluded.add(dst)
+        return excluded
+
     def set_cooldown_mode(self, mode: str) -> None:
         """切换 cooldown 模式：'hard'（硬排除）或 'decay'（衰减权重）。"""
         if mode not in ("hard", "decay"):
             raise ValueError(f"cooldown_mode 须为 'hard' 或 'decay'，got {mode!r}")
-        self._cooldown_mode = mode
+        if mode == self._cooldown_mode:
+            return
+        N = self._cooldown_rounds
         if mode == "decay":
-            # 将现有 cooldown 表从 unlock_round 迁移为 reject_round
-            # 旧值 = round_idx + N，重建时无法精确还原，直接清空（下轮重新记录）
-            self._cooldown = {}
+            # hard→decay：unlock_round = reject_round + N，精确反推 reject_round
+            self._cooldown = {k: v - N for k, v in self._cooldown.items()}
+        else:
+            # decay→hard：reject_round → unlock_round = reject_round + N
+            self._cooldown = {k: v + N for k, v in self._cooldown.items()}
+        self._cooldown_mode = mode
 
     def mask_cooldown(
         self, u: int, cands: list[tuple[int, float]], round_idx: int
@@ -288,7 +310,13 @@ class OnlineEnv:
 
         # 每 10 轮清理过期 cooldown 条目，防内存泄漏
         if round_idx % 10 == 0:
-            self._cooldown = {k: v for k, v in self._cooldown.items() if v > round_idx}
+            if self._cooldown_mode == "hard":
+                # v = unlock_round，保留还没解锁的
+                self._cooldown = {k: v for k, v in self._cooldown.items() if v > round_idx}
+            else:
+                # v = reject_round，衰减到 e^{-10} 后可丢（约 10×cooldown_rounds 轮后）
+                cutoff = round_idx - 10 * self._cooldown_rounds
+                self._cooldown = {k: v for k, v in self._cooldown.items() if v > cutoff}
 
         self._selector.update_after_round(round_idx, fb.accepted)
         return fb

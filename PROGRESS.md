@@ -1,7 +1,7 @@
 # PROGRESS — 当前任务进度
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-23 15:00
+> 最后更新：2026-04-24 16:00
 
 ---
 
@@ -266,6 +266,29 @@
 - [ ] src/baseline/heuristic.py（可选）
 - 已变更文件：src/train.py, src/evaluate.py（修复 max_neighbors_per_node 参数名）
 - 下一步行动：实现 heuristic baseline 或开始 Phase 5 实验
+
+---
+
+## [Bug 修复批次：评估指标 + 仿真逻辑]
+- 状态：✅ 已完成
+- 完成时间：2026-04-24
+- smoke test：3 轮全通过
+
+### 修复清单
+| Bug | 文件 | 影响 |
+|---|---|---|
+| MRR@K 三个 K 值相同（未截断） | evaluator.py | 指标虚报 |
+| 正样本用 accepted_set 漏掉 p_pos 拒绝的真正样本 | evaluator.py | MRR/Hits 低估 |
+| rec_coverage@K 分母=全图节点数（被 sample_ratio 稀释） | evaluator.py | 跨数据集横比失效 |
+| pos_arr/neg_arr 死代码（`if False`） | evaluator.py | 代码污染 |
+| `_refresh_G_t` 每次 `to_undirected()` O(E) 重建 | evaluator.py | 大图每 10 轮浪费 |
+| `set_cooldown_mode("decay")` 清空 cooldown 表 | env.py | 切换时机影响实验 |
+| cooldown 清理 decay 模式恒清空（`reject_round > t` 恒 False） | env.py | cooldown 惩罚每 10 轮消失 |
+| 冷启动有放回抽样（两步转换+重复节点） | loop.py | 候选重复，信噪比低 |
+| cooldown exclude 在 decay 模式下漏判 | env.py + loop.py | 冷启动可重采刚拒绝的节点 |
+| `extract_topo_features` 每轮调用两次 | loop.py | MLP 模式冗余计算 |
+| UserSelector degree 每轮 O(N+E) Python loop | user_selector.py | 大图每轮慢 1-3s |
+| `node_feat` gather 后无 pin_memory | trainer.py | H→D 拷贝与 forward 串行 |
 
 ---
 

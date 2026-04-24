@@ -315,7 +315,11 @@ class OnlineTrainer:
 
         if self.node_feat is not None:
             nid_t = torch.from_numpy(nodes_flat.astype(np.int64))
-            g.ndata["node_feat"] = self.node_feat[nid_t]
+            # pin_memory 让 H→D 拷贝与 GPU forward 重叠（CPU gather 后固定内存）
+            gathered = self.node_feat[nid_t]
+            if str(self.device) != "cpu":
+                gathered = gathered.pin_memory()
+            g.ndata["node_feat"] = gathered
 
         return g
 

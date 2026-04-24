@@ -65,22 +65,23 @@ class RoundMetrics:
     ) -> dict[str, float]:
         row: dict[str, float] = {"round": round_idx, "coverage": coverage}
 
-        # 推荐质量：对每个用户构造 (pos_scores, neg_scores) 再聚合
-        pos_scores_list, neg_scores_list = [], []
-        n_rec_total = n_accepted_total = 0
         accepted_set = set(feedback.accepted)
+        n_rec_total = n_accepted_total = 0
+
+        # C2 fix: 排序指标用 G* 做正样本（不受 p_pos 采样噪声影响）
+        # precision_k / hit_rate 仍用 accepted_set（衡量实际行为）
+        pos_scores_list, neg_scores_list = [], []
 
         for u, vs in recs.items():
             if not vs:
                 continue
-            # 当前轮正样本 = 被接受的 (u,v) 且 (u,v) 不在已有图中（排除历史边）
-            pos_v = [v for v in vs if (u, v) in accepted_set]
-            neg_v = [v for v in vs if (u, v) not in accepted_set]
             n_rec_total += len(vs)
-            n_accepted_total += len(pos_v)
+            n_accepted_total += sum(1 for v in vs if (u, v) in accepted_set)
 
+            # 排序指标：G* 中存在的边为正样本
+            pos_v = [v for v in vs if (u, v) in self._star]
+            neg_v = [v for v in vs if (u, v) not in self._star]
             if pos_v and neg_v:
-                # 用均匀分（排序质量用），pos=1 neg=0
                 pos_scores_list.append(np.ones(len(pos_v)))
                 neg_scores_list.append(np.zeros((len(pos_v), len(neg_v))))
 
@@ -91,21 +92,16 @@ class RoundMetrics:
         row["n_skipped_users"] = float(sum(1 for vs in recs.values() if not vs))
 
         if pos_scores_list:
-            pos_arr = np.concatenate(pos_scores_list)  # (N_pos,)
-            neg_arr = np.vstack([
-                np.pad(n, ((0, 0), (0, max(m.shape[1] for m in neg_scores_list) - n.shape[1])))
-                if n.ndim == 2 else n
-                for n in neg_scores_list
-            ]) if False else None  # 简化：直接用聚合版
-
-            # 聚合 MRR / Hits@K（每个正样本 vs 该用户所有负样本）
-            mrr_vals, hits_vals = {k: [] for k in self._ks}, []
+            mrr_vals: dict[int, list[float]] = {k: [] for k in self._ks}
+            hits_vals: list[float] = []
             for ps, ns in zip(pos_scores_list, neg_scores_list):
                 if ps.size == 0 or ns.size == 0:
                     continue
+                ranks = (ns > ps[:, None]).sum(axis=1) + 1  # (N_pos,) 1-based
                 for k in self._ks:
-                    mrr_vals[k].append(compute_mrr(ps, ns))
-                hits_vals.append(compute_hits_at_k(ps, ns, k=self._ks[0]))
+                    rr = float(np.where(ranks <= k, 1.0 / ranks.astype(float), 0.0).mean())
+                    mrr_vals[k].append(rr)
+                hits_vals.append(float((ranks <= self._ks[0]).mean()))
 
             for k in self._ks:
                 row[f"mrr@{k}"] = float(np.mean(mrr_vals[k])) if mrr_vals[k] else 0.0
@@ -124,7 +120,7 @@ class RoundMetrics:
     # ── 辅助：增量更新 G_t 缓存 ────────────────────────────────────────────────
 
     def _refresh_G_t(self, adj: StaticAdjacency) -> None:
-        """当边数变化时增量更新缓存的有向图和无向图。"""
+        """当边数变化时增量更新有向图缓存；无向图按需延迟重建。"""
         cur_edges = adj.num_edges()
         if cur_edges == self._G_t_edge_count:
             return
@@ -133,12 +129,18 @@ class RoundMetrics:
             if self._G_t is None:
                 self._G_t = nx.DiGraph()
                 self._G_t.add_nodes_from(range(self._n))
-            # add_edges_from 对已存在的边是幂等的，只新增才有效
             self._G_t.add_edges_from(adj.iter_edges())
-            self._G_t_undirected = self._G_t.to_undirected()
+            # 标记无向图需重建，但不立即执行（避免每次 O(E) to_undirected）
+            self._G_t_undirected = None
             self._G_t_edge_count = cur_edges
         except Exception:
             pass
+
+    def _get_G_t_undirected(self):
+        """延迟构建无向图，只在被实际消费时才执行 to_undirected()。"""
+        if self._G_t_undirected is None and self._G_t is not None:
+            self._G_t_undirected = self._G_t.to_undirected()
+        return self._G_t_undirected
 
     # ── 多样性指标 ────────────────────────────────────────────────────────────
 
@@ -164,11 +166,16 @@ class RoundMetrics:
                 hit_users += 1
         result[f"hit_rate@{k}"] = hit_users / total_users if total_users > 0 else 0.0
 
-        # Coverage@K：所有推荐覆盖到的不同目标节点数 / n_nodes
+        # Coverage@K：推荐覆盖的不同目标节点数 / 候选池大小（去重后的所有候选节点）
+        # 分母用候选池而非全图节点数，避免被 sample_ratio 稀释（全图分母理论上限 = sample_ratio）
         rec_targets: set[int] = set()
+        all_cand_targets: set[int] = set()
         for vs in recs.values():
+            all_cand_targets.update(vs)
             rec_targets.update(vs[:k])
-        result[f"rec_coverage@{k}"] = len(rec_targets) / self._n if self._n > 0 else 0.0
+        denom = len(all_cand_targets) if all_cand_targets else 1
+        result[f"rec_coverage@{k}"] = len(rec_targets) / denom
+        result[f"unique_recs@{k}"] = float(len(rec_targets))
 
         # Novelty：仅与 _graph_similarity 同频计算，避免每轮 BFS
         if round_idx % self._graph_every == 0:
@@ -187,9 +194,9 @@ class RoundMetrics:
         try:
             import networkx as nx  # noqa: PLC0415
             self._refresh_G_t(adj)
-            if self._G_t_undirected is None:
+            G_undirected = self._get_G_t_undirected()
+            if G_undirected is None:
                 return float("nan")
-            G_undirected = self._G_t_undirected
 
             pairs = [(u, v) for u, vs in recs.items() for v in vs[:k]]
             if len(pairs) > max_pairs:

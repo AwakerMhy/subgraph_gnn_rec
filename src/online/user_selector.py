@@ -57,7 +57,9 @@ class UserSelector:
             return self._rng.choice(self._n, size=k, replace=False).tolist()
 
         # composite 权重
-        degrees = np.array([len(adj.out_neighbors(u)) for u in range(self._n)], dtype=np.float64)
+        # O(N) numpy diff on CSR indptr，避免每轮 N 次 list(set) 转换
+        indptr, _ = adj.get_csr()
+        degrees = np.diff(indptr).astype(np.float64)
         d_max = degrees.max() + 1.0
         degree_factor = ((degrees + 1.0) / d_max) ** self._alpha
         time_factor = np.exp(-self._lam * (t - self._t_last))

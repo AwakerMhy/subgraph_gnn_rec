@@ -1,7 +1,7 @@
 # BLUEPRINT — Temporal Social Link Prediction via 2-Hop Subgraph GNN
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-21
+> 最后更新：2026-04-24
 
 **本文件是项目地图，每次任务开始前必读。目的是减少 grep/read 开销。**
 
@@ -61,7 +61,7 @@ gnn/
 │   ├── recall/                  # ← 新包（Step 4/8）模拟召回子系统
 │   │   ├── __init__.py          # 导出 RecallBase/CN/AA/build_recall/CurriculumScheduler
 │   │   ├── base.py              # RecallBase ABC（含 update_graph hook）
-│   │   ├── heuristic.py         # CommonNeighborsRecall / AdamicAdarRecall
+│   │   ├── heuristic.py         # CommonNeighborsRecall / AdamicAdarRecall；自适应阈值（n≤10k用set ops，>10k用sparse matmul）
 │   │   ├── ppr.py               # ← 新（P0-2）PPRRecall：个性化 PageRank power iteration
 │   │   ├── community.py         # ← 新（P0-2）CommunityRandomRecall：社区内随机采样
 │   │   ├── mixture.py           # ← 新（P0-2）MixtureRecall：配额合并多子召回器
@@ -75,15 +75,15 @@ gnn/
 │   │
 │   │
 │   ├── online/                      # ← 新包（在线学习仿真，2026-04-20）
-│   │   ├── static_adj.py            # StaticAdjacency：duck-type TimeAdjacency，O(1) 动态加边
-│   │   ├── env.py                   # OnlineEnv：G*/G_t/cooldown/UserSelector集成/4种init策略
+│   │   ├── static_adj.py            # StaticAdjacency：duck-type TimeAdjacency，O(1) 动态加边，懒构建 CSR
+│   │   ├── env.py                   # OnlineEnv：G*/G_t/cooldown(hard+decay双模式)/cooldown_excluded_nodes()
 │   │   ├── feedback.py              # FeedbackSimulator：p_pos/p_neg 伯努利接受模拟
-│   │   ├── user_selector.py         # ← 新（P0-3）UserSelector：uniform/composite 用户采样策略
-│   │   ├── trainer.py               # OnlineTrainer：批量子图打分 + BCE 在线更新
+│   │   ├── user_selector.py         # UserSelector：uniform/composite；degree 用 np.diff(CSR indptr) O(N)
+│   │   ├── trainer.py               # OnlineTrainer：批量子图打分+BCE在线更新；numba并行边提取；pin_memory
 │   │   ├── replay.py                # ReplayBuffer：capacity=0 时 no-op
-│   │   ├── evaluator.py             # RoundMetrics：Prec/MRR/coverage/KL + Hit Rate/Coverage@K/Novelty
+│   │   ├── evaluator.py             # RoundMetrics：截断MRR@K/G*正样本/候选池coverage/延迟undirected重建
 │   │   ├── schedule.py              # build_scheduler：cosine_warmup/constant/step
-│   │   └── loop.py                  # run_online_simulation：主循环入口（支持 mlp/gnn 切换）
+│   │   └── loop.py                  # run_online_simulation：主循环（mlp/gnn）；冷启动无放回采样；feat缓存
 │   │
 │   ├── baseline/
 │   │   ├── heuristic.py         # CN / AA / Jaccard
