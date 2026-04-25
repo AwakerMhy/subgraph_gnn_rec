@@ -144,6 +144,8 @@ class OnlineTrainer:
         node_feat: "torch.Tensor | None" = None,
         min_batch_size: int = 4,
         grad_clip: float = 1.0,
+        score_chunk_size: int = 512,
+        use_amp: bool = False,
     ) -> None:
         self.model = model
         self.optimizer = optimizer
@@ -155,6 +157,11 @@ class OnlineTrainer:
         self.node_feat = node_feat.cpu() if node_feat is not None else None
         self.min_batch_size = min_batch_size
         self.grad_clip = grad_clip
+        self.score_chunk_size = score_chunk_size
+        self.use_amp = use_amp and str(torch.device(device)) != "cpu"
+        self.scaler = torch.amp.GradScaler("cuda") if self.use_amp else None
+        # (nbrs_array, len_out, len_in) — 跨轮复用，仅当度变化时失效
+        self._u_nbrs_cache: dict[int, tuple[np.ndarray, int, int]] = {}
 
     # ── 子图构建（update() 使用，pair 数量少，仍走逐对路径）────────────────────
 
@@ -200,12 +207,19 @@ class OnlineTrainer:
         u_nbrs: dict[int, np.ndarray] = {}
         for u, cands in user_cand_list:
             if u not in u_nbrs and cands:
-                out_arr = np.fromiter(adj._out[u], dtype=np.int32, count=len(adj._out[u]))
-                in_arr  = np.fromiter(adj._in[u],  dtype=np.int32, count=len(adj._in[u]))
+                cur_out = len(adj._out[u])
+                cur_in  = len(adj._in[u])
+                cached = self._u_nbrs_cache.get(u)
+                if cached is not None and cached[1] == cur_out and cached[2] == cur_in:
+                    u_nbrs[u] = cached[0]
+                    continue
+                out_arr = np.fromiter(adj._out[u], dtype=np.int32, count=cur_out)
+                in_arr  = np.fromiter(adj._in[u],  dtype=np.int32, count=cur_in)
                 raw: np.ndarray = np.union1d(out_arr, in_arr)   # sorted, unique
                 if len(raw) > self.max_neighbors:
                     idx = rng.choice(len(raw), self.max_neighbors, replace=False)
                     raw = np.sort(raw[idx])
+                self._u_nbrs_cache[u] = (raw, cur_out, cur_in)
                 u_nbrs[u] = raw
         return u_nbrs
 
@@ -357,7 +371,7 @@ class OnlineTrainer:
         self,
         user_cand_list: list[tuple[int, list[int]]],
         adj: StaticAdjacency,
-        chunk_size: int = 512,
+        chunk_size: int | None = None,
     ) -> list[list[float]]:
         """多用户候选扁平化建图后批量打分：每 chunk 只调用一次 dgl.graph()。
 
@@ -379,15 +393,20 @@ class OnlineTrainer:
 
         global_scores = [0.0] * len(all_pairs)
         self.model.eval()
+        _chunk = chunk_size if chunk_size is not None else self.score_chunk_size
 
-        for chunk_start in range(0, len(all_pairs), chunk_size):
-            chunk = all_pairs[chunk_start: chunk_start + chunk_size]
+        for chunk_start in range(0, len(all_pairs), _chunk):
+            chunk = all_pairs[chunk_start: chunk_start + _chunk]
             g = self._build_flat_batched_graph(chunk, adj, precomputed)
             if g is None:
                 continue
             g_gpu = g.to(self.device)
             with torch.no_grad():
-                chunk_scores = self.model.forward_batch(g_gpu)
+                if self.use_amp:
+                    with torch.amp.autocast("cuda"):
+                        chunk_scores = self.model.forward_batch(g_gpu)
+                else:
+                    chunk_scores = self.model.forward_batch(g_gpu)
             del g_gpu
             for i, s in enumerate(chunk_scores.tolist()):
                 global_scores[chunk_start + i] = s
@@ -406,33 +425,48 @@ class OnlineTrainer:
         adj: StaticAdjacency,
     ) -> dict[str, float]:
         """用本轮正负样本做一步梯度更新。返回 {'loss': float}。"""
-        import dgl  # noqa: PLC0415
-
         all_pairs = pos_pairs + neg_pairs
         if len(all_pairs) < self.min_batch_size:
             return {"loss": float("nan"), "skipped": 1}
 
-        graphs, valid_idx = self._build_subgraphs(all_pairs, adj)
-        if not graphs:
+        # 复用 score_batch 的快速批量路径，避免逐对调用 extract_subgraph
+        _rng = np.random.default_rng(0)
+        u_nbrs = self._precompute_u_nbrs([(u, [v]) for u, v in all_pairs], adj, _rng)
+        bg = self._build_flat_batched_graph(all_pairs, adj, u_nbrs)
+        if bg is None:
             return {"loss": float("nan"), "skipped": 1}
 
-        labels_all = [1.0] * len(pos_pairs) + [0.0] * len(neg_pairs)
         labels = torch.tensor(
-            [labels_all[i] for i in valid_idx], dtype=torch.float32, device=self.device
+            [1.0] * len(pos_pairs) + [0.0] * len(neg_pairs),
+            dtype=torch.float32, device=self.device,
         )
 
-        bg = dgl.batch(graphs).to(self.device)
+        bg = bg.to(self.device)
         self.model.train()
         self.optimizer.zero_grad()
-        preds = self.model.forward_batch(bg)
-        del bg
-        loss = nn.functional.binary_cross_entropy(preds, labels)
-        loss_val = loss.item()
-        loss.backward()
-        del preds, loss
-        if self.grad_clip > 0:
-            nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
-        self.optimizer.step()
+        if self.use_amp:
+            with torch.amp.autocast("cuda"):
+                preds = self.model.forward_batch(bg)
+            del bg
+            loss = nn.functional.binary_cross_entropy(preds.float(), labels)
+            loss_val = loss.item()
+            self.scaler.scale(loss).backward()
+            del preds, loss
+            if self.grad_clip > 0:
+                self.scaler.unscale_(self.optimizer)
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+        else:
+            preds = self.model.forward_batch(bg)
+            del bg
+            loss = nn.functional.binary_cross_entropy(preds, labels)
+            loss_val = loss.item()
+            loss.backward()
+            del preds, loss
+            if self.grad_clip > 0:
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
+            self.optimizer.step()
         if self.scheduler is not None:
             self.scheduler.step()
 

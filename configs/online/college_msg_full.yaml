@@ -40,6 +40,8 @@ trainer:
   lr: 1.0e-3
   min_batch_size: 4
   grad_clip: 1.0
+  score_chunk_size: 512
+  use_amp: true
   scheduler:
     strategy: cosine_warmup
     warmup_rounds: 5
