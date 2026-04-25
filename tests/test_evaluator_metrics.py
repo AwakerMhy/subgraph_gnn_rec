@@ -57,14 +57,18 @@ def test_hit_rate_partial():
 # ── Coverage@K ────────────────────────────────────────────────────────────────
 
 def test_rec_coverage_distinct_targets():
-    """Coverage@K = 不同目标节点数 / n_nodes。"""
+    """Coverage@K = top-K 不同目标节点数 / 候选池去重大小。
+
+    分母在 [2026-04-24] 改为候选池大小（避免被 sample_ratio 稀释）。
+    本例候选池与 top-K 同为 {1,2,3,4}，故 coverage = 4/4 = 1.0。
+    """
     ev = make_evaluator(n=10)
     adj = make_adj(10, [])
     fb = Feedback(accepted=[], rejected=[(0, 1), (0, 2), (1, 3), (1, 4)],
                   recs={0: [1, 2], 1: [3, 4]})
     row = ev.update(0, {0: [1, 2], 1: [3, 4]}, fb, adj, 0.0)
-    # 4 个不同目标 / 10 节点 = 0.4
-    assert row["rec_coverage@3"] == pytest.approx(0.4)
+    assert row["rec_coverage@3"] == pytest.approx(1.0)
+    assert row["unique_recs@3"] == pytest.approx(4.0)
 
 
 # ── Novelty ──────────────────────────────────────────────────────────────────

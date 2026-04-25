@@ -1,7 +1,7 @@
 {
   "dataset": {
-    "type": "college_msg",
-    "path": "data/processed/college_msg/edges.csv"
+    "type": "bitcoin_otc",
+    "path": "data/processed/bitcoin_otc/edges.csv"
   },
   "init_edge_ratio": 0.05,
   "init_strategy": "stratified",
@@ -82,7 +82,7 @@
   "runtime": {
     "seed": 42,
     "device": "cuda",
-    "out_dir": "results/online/college_msg_full",
+    "out_dir": "results/online/bitcoin_otc_full",
     "log_every": 1
   }
 }

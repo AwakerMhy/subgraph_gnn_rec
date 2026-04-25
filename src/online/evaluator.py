@@ -93,17 +93,19 @@ class RoundMetrics:
         row["n_skipped_users"] = float(sum(1 for vs in recs.values() if not vs))
 
         if pos_ranks_list:
+            # MRR: 标准定义为最佳（最小）正样本 rank 的倒数；@k 时若 best_rank > k 记 0
+            # Hits@K: 至少一个正样本 rank ≤ K 时记 1，否则 0（query 维度均值）
             mrr_vals: dict[int, list[float]] = {k: [] for k in self._ks}
-            hits_vals: list[float] = []
+            hits_vals: dict[int, list[float]] = {k: [] for k in self._ks}
             for ranks in pos_ranks_list:
+                best = float(ranks.min())
                 for k in self._ks:
-                    rr = float(np.where(ranks <= k, 1.0 / ranks, 0.0).mean())
-                    mrr_vals[k].append(rr)
-                hits_vals.append(float((ranks <= self._ks[0]).mean()))
+                    mrr_vals[k].append(1.0 / best if best <= k else 0.0)
+                    hits_vals[k].append(1.0 if best <= k else 0.0)
 
             for k in self._ks:
                 row[f"mrr@{k}"] = float(np.mean(mrr_vals[k])) if mrr_vals[k] else 0.0
-            row[f"hits@{self._ks[0]}"] = float(np.mean(hits_vals)) if hits_vals else 0.0
+                row[f"hits@{k}"] = float(np.mean(hits_vals[k])) if hits_vals[k] else 0.0
 
         # 新增指标：Hit Rate@K、Coverage@K、Novelty
         row.update(self._diversity_metrics(recs, accepted_set, adj, round_idx))

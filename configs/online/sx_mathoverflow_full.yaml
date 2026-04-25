@@ -1,18 +1,26 @@
 dataset:
-  type: college_msg
-  path: data/processed/college_msg/edges.csv
+  type: sx_mathoverflow
+  path: data/processed/sx_mathoverflow/edges.csv
 
 init_edge_ratio: 0.05
 init_strategy: stratified
 total_rounds: 100
 
 user_selector:
-  strategy: uniform
-  sample_ratio: 0.10
+  strategy: composite
+  alpha: 0.5
+  beta: 2.0
+  lam: 0.1
+  gamma: 2.0
+  w: 3
+  sample_ratio: 0.03        # 24759 nodes → ~743 active users/round
 
 recall:
-  method: adamic_adar
-  top_k_recall: 50
+  method: mixture
+  components:
+    - {name: adamic_adar, top_k: 40}
+    - {name: ppr, top_k: 10, alpha: 0.15}
+  top_k_recall: 50          # community_random 在 24k 节点上 O(E log V) 全量重算太慢，跳过
 
 recommend:
   top_k: 10
@@ -31,21 +39,23 @@ trainer:
   lr: 1.0e-3
   min_batch_size: 4
   grad_clip: 1.0
+  score_chunk_size: 1024
+  use_amp: true
   scheduler:
     strategy: cosine_warmup
     warmup_rounds: 5
     min_lr: 1.0e-5
 
 model:
-  # 在线仿真小图用 8（速度优先）；离线大图训练用 64（精度优先，见 TODO.md 消融结论）
+  type: gnn
   hidden_dim: 8
   num_layers: 3
   encoder_type: last
   node_feat_dim: 0
 
 replay:
-  capacity: 0
-  sample_n: 0
+  capacity: 500
+  sample_n: 64
 
 eval:
   k_list: [5, 10, 20]
@@ -55,5 +65,5 @@ eval:
 runtime:
   seed: 42
   device: cuda
-  out_dir: results/online/college_msg
+  out_dir: results/online/sx_mathoverflow_full
   log_every: 1

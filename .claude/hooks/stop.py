@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Stop hook: 结束检查。
-- 本轮有代码改动但 PROGRESS.md 未更新 → 下一轮强制提示
-- 本轮触发了错误或用户使用纠正性措辞 → 提示追加 MISTAKES.md
+- 用户使用纠正性措辞 → 提示追加 MISTAKES.md
 """
 import sys
 import json

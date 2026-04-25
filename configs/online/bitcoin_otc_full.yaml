@@ -1,17 +1,26 @@
 dataset:
-  type: college_msg
-  path: data/processed/college_msg/edges.csv
+  type: bitcoin_otc
+  path: data/processed/bitcoin_otc/edges.csv
 
 init_edge_ratio: 0.05
 init_strategy: stratified
 total_rounds: 100
 
 user_selector:
-  strategy: uniform
+  strategy: composite
+  alpha: 0.5
+  beta: 2.0
+  lam: 0.1
+  gamma: 2.0
+  w: 3
   sample_ratio: 0.10
 
 recall:
-  method: adamic_adar
+  method: mixture
+  components:
+    - {name: adamic_adar, top_k: 30}
+    - {name: ppr, top_k: 10, alpha: 0.15}
+    - {name: community_random, top_k: 10}
   top_k_recall: 50
 
 recommend:
@@ -31,21 +40,23 @@ trainer:
   lr: 1.0e-3
   min_batch_size: 4
   grad_clip: 1.0
+  score_chunk_size: 512
+  use_amp: true
   scheduler:
     strategy: cosine_warmup
     warmup_rounds: 5
     min_lr: 1.0e-5
 
 model:
-  # 在线仿真小图用 8（速度优先）；离线大图训练用 64（精度优先，见 TODO.md 消融结论）
+  type: gnn
   hidden_dim: 8
   num_layers: 3
   encoder_type: last
   node_feat_dim: 0
 
 replay:
-  capacity: 0
-  sample_n: 0
+  capacity: 200
+  sample_n: 32
 
 eval:
   k_list: [5, 10, 20]
@@ -55,5 +66,5 @@ eval:
 runtime:
   seed: 42
   device: cuda
-  out_dir: results/online/college_msg
+  out_dir: results/online/bitcoin_otc_full
   log_every: 1

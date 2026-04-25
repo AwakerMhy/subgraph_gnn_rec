@@ -2,7 +2,6 @@
 """
 PostToolUse hook: 补救层。
 - 写 .md 文件后检查日期标注
-- 写代码文件后提醒同步 BLUEPRINT.md
 """
 import sys
 import json
@@ -38,15 +37,6 @@ def main():
             except Exception:
                 pass
 
-        elif ext in (".py", ".yaml", ".yml"):
-            # 提醒同步 BLUEPRINT
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            blueprint_path = os.path.join(base_dir, "BLUEPRINT.md")
-            if os.path.exists(blueprint_path):
-                warnings.append(
-                    f"[PostToolUse] 提醒：修改了代码文件 {os.path.basename(file_path)}，"
-                    "请评估是否需要同步更新 BLUEPRINT.md（函数索引 / 模块职责）"
-                )
 
     if warnings:
         output = {"warnings": warnings}

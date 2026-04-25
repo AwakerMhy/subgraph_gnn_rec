@@ -117,12 +117,12 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
 
     # ── 召回 ──────────────────────────────────────────────────────────────────
     recall_cfg = cfg.get("recall", {})
-    recall = build_recall(
-        {"method": recall_cfg.get("method", "adamic_adar"),
-         "top_k": recall_cfg.get("top_k_recall", 50)},
-        adj,
-        n_nodes,
-    )
+    # 整体透传 recall_cfg：保留 components/alpha/recompute_every_n 等子字段
+    # 同时把 top_k_recall 提升为 top_k 的兜底
+    _recall_full = dict(recall_cfg)
+    _recall_full.setdefault("method", "adamic_adar")
+    _recall_full.setdefault("top_k", recall_cfg.get("top_k_recall", 50))
+    recall = build_recall(_recall_full, adj, n_nodes)
 
     # ── 模型 ──────────────────────────────────────────────────────────────────
     model_cfg = cfg.get("model", {})
@@ -180,6 +180,8 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             node_feat=node_feat,
             min_batch_size=trainer_cfg.get("min_batch_size", 4),
             grad_clip=trainer_cfg.get("grad_clip", 1.0),
+            score_chunk_size=trainer_cfg.get("score_chunk_size", 512),
+            use_amp=trainer_cfg.get("use_amp", False),
         )
 
     replay_cfg = cfg.get("replay", {})

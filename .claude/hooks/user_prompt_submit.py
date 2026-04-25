@@ -30,12 +30,6 @@ def extract_headings(path, level="##"):
         return []
 
 def main():
-    # 读取 stdin（hook 输入）
-    try:
-        data = json.load(sys.stdin)
-    except Exception:
-        data = {}
-
     context_parts = []
 
     # BLUEPRINT 前 60 行（目录树部分）

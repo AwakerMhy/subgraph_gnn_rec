@@ -10,8 +10,11 @@ dataset:
     seed: 42
 
 init_edge_ratio: 0.05
-user_sample_ratio: 0.10
 total_rounds: 100
+
+user_selector:
+  strategy: uniform
+  sample_ratio: 0.10
 
 recall:
   method: adamic_adar
@@ -19,10 +22,13 @@ recall:
 
 recommend:
   top_k: 10
+  cold_start_random_fill: true
 
 feedback:
-  p_accept: 1.0
+  p_pos: 0.8         # G* 内推荐被接受概率
+  p_neg: 0.02        # G* 外推荐被接受概率（探索性）
   cooldown_rounds: 5
+  cooldown_mode: decay
 
 trainer:
   update_every_n_rounds: 1
@@ -37,6 +43,7 @@ trainer:
     min_lr: 1.0e-5
 
 model:
+  # 在线仿真小图用 8（速度优先）；离线大图训练用 64（精度优先，见 TODO.md 消融结论）
   hidden_dim: 8
   num_layers: 3
   encoder_type: last

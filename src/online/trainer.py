@@ -207,14 +207,14 @@ class OnlineTrainer:
         u_nbrs: dict[int, np.ndarray] = {}
         for u, cands in user_cand_list:
             if u not in u_nbrs and cands:
-                cur_out = len(adj._out[u])
-                cur_in  = len(adj._in[u])
+                cur_out = adj.out_degree(u)
+                cur_in  = adj.in_degree(u)
                 cached = self._u_nbrs_cache.get(u)
                 if cached is not None and cached[1] == cur_out and cached[2] == cur_in:
                     u_nbrs[u] = cached[0]
                     continue
-                out_arr = np.fromiter(adj._out[u], dtype=np.int32, count=cur_out)
-                in_arr  = np.fromiter(adj._in[u],  dtype=np.int32, count=cur_in)
+                out_arr = np.fromiter(adj.out_neighbors_set(u), dtype=np.int32, count=cur_out)
+                in_arr  = np.fromiter(adj.in_neighbors_set(u),  dtype=np.int32, count=cur_in)
                 raw: np.ndarray = np.union1d(out_arr, in_arr)   # sorted, unique
                 if len(raw) > self.max_neighbors:
                     idx = rng.choice(len(raw), self.max_neighbors, replace=False)

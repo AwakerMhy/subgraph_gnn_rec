@@ -18,18 +18,17 @@ def build_recall(
     """根据 config 构造召回器实例。
 
     method 可选值：
-        'common_neighbors' | 'adamic_adar' | 'union' |
+        'common_neighbors' | 'adamic_adar' |
         'ppr' | 'community_random' | 'mixture'
 
     mixture 需要额外字段 components: [{name, top_k, ...}, ...]
+    旧的 'union' 别名已废弃（DECISIONS.md [2026-04-21]），请改用 mixture。
     """
     method = cfg_recall.get("method", "common_neighbors")
 
     if method == "common_neighbors":
         return CommonNeighborsRecall(time_adj, n_nodes)
     elif method == "adamic_adar":
-        return AdamicAdarRecall(time_adj, n_nodes)
-    elif method == "union":
         return AdamicAdarRecall(time_adj, n_nodes)
     elif method == "ppr":
         from src.recall.ppr import PPRRecall  # noqa: PLC0415
@@ -53,10 +52,23 @@ def build_recall(
             {"name": "community_random", "top_k": 10},
         ])
         components = []
-        for comp in components_cfg:
+        for i, comp in enumerate(components_cfg):
+            if not isinstance(comp, dict) or "name" not in comp:
+                raise ValueError(
+                    f"recall.components[{i}] 必须为 dict 且包含 'name' 字段，得到 {comp!r}"
+                )
+            if "top_k" not in comp:
+                raise ValueError(
+                    f"recall.components[{i}] (name={comp['name']!r}) 缺少 'top_k' 字段"
+                )
             sub = build_recall({**comp, "method": comp["name"]}, time_adj, n_nodes)
-            components.append((sub, comp.get("top_k", 10)))
+            components.append((sub, int(comp["top_k"])))
         return MixtureRecall(components)
+    elif method == "union":
+        raise ValueError(
+            "recall.method='union' 已废弃，请改用 'mixture' 并显式指定 components "
+            "(参考 DECISIONS.md [2026-04-21])。"
+        )
     else:
         raise ValueError(
             f"未知召回策略: {method!r}，支持 'common_neighbors' | 'adamic_adar' | "

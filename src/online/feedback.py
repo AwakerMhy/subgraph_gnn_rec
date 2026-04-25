@@ -1,6 +1,7 @@
 """src/online/feedback.py — 用户反馈模拟器。"""
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -26,9 +27,16 @@ class FeedbackSimulator:
         p_pos: float = 1.0,
         p_neg: float = 0.0,
         rng: np.random.Generator | None = None,
-        # 向后兼容：p_accept 映射到 p_pos
+        # 向后兼容：p_accept 映射到 p_pos（已废弃，下个迭代删除）
         p_accept: float | None = None,
     ) -> None:
+        if p_accept is not None:
+            warnings.warn(
+                "FeedbackSimulator: p_accept 已废弃，请改用 p_pos。"
+                "p_accept 将在下个迭代删除。",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self._star = star_edge_set
         self._p_pos = p_accept if p_accept is not None else p_pos
         self._p_neg = p_neg

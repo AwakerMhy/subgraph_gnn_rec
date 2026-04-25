@@ -184,3 +184,114 @@
 - 完成当前 Step 1-8 离线框架，验证"模拟召回 + GNN 精排"在离线场景下有效
 - 在合成数据集（SBM / Triadic）上先做在线模拟实验（可控环境）
 - 再迁移到真实数据集（CollegeMsg 等）
+
+---
+
+## 代码/文档审计待办（新增 2026-04-25）
+
+> 来源：本次 review 对 `src/online/*`、`src/recall/*`、`configs/online/*`、`tests/*`、`BLUEPRINT.md`、`PROGRESS.md` 的全面比对。条目按优先级分组。
+
+### A. 代码逻辑错误（必须修，影响实验正确性）✅ 已完成 2026-04-25
+
+- [x] **A1. `loop.py` 未透传 `recall.components`** — 改为透传整个 recall_cfg；registry 加 schema 校验
+- [x] **A2. `evaluator.py::Hits@K` 仅生成 `hits@ks[0]`** — 改为循环 self._ks 生成所有 K
+- [x] **A3. `tests/test_evaluator_metrics.py::test_rec_coverage_distinct_targets` 断言错误** — 改为 1.0，加 unique_recs@3 辅助断言
+- [x] **A4. `registry.py::build_recall("union")` 语义错误** — 改为报 ValueError，提示用 mixture
+- [x] **A5. `evaluator.py::MRR` 多正样本求 mean** — 改为标准最佳 rank 倒数
+- [x] **A6. `OnlineTrainer._precompute_u_nbrs` 读私有字段** — StaticAdjacency 暴露 out_degree/in_degree/out_neighbors_set/in_neighbors_set
+
+### B. 性能/设计可改进（非阻塞）
+
+- [ ] **B1. `heuristic.py::CN/AA::update_graph` 每轮无条件重建 sparse A**
+  - 改：仿 PPR，缓存 `_last_n_edges`，只在边数变化时调 `_build_sparse_adj`
+
+- [ ] **B2. `evaluator._refresh_G_t` 每次重添加全部 `adj.iter_edges()`**
+  - 改：维护一个 `_known_edges` 集合，只 add 新增；或缓存 nx.DiGraph 在 `OnlineEnv.add_edge` 钩入增量
+
+- [ ] **B3. `StaticAdjacency.get_csr` 全量 Python loop 重建 CSR**
+  - 改：按 `_out` 增量维护排序数组；或在 dirty 重建时用 numpy `np.fromiter` 替 `sorted(set)` 提速
+
+- [ ] **B4. `OnlineEnv.cooldown_excluded_nodes` 对每用户全量扫 `_cooldown` 表**
+  - 改：再维护一个 `dict[int, set[int]]`（src→{dst}），cold_start_users 多时省一次 O(|cooldown|)
+
+- [ ] **B5. `loop.py` 中 `extract_topo_features` 在 247、282 行重复 import**
+  - 改：放到模块顶部 `try: ... except ImportError`，避免每轮 import overhead
+
+- [ ] **B6. `evaluator.py` 死导入 `compute_hits_at_k / compute_mrr / compute_ndcg_at_k`**
+  - 改：删除（实际指标已 inline 实现）；或重构为复用 `src/utils/metrics.py`
+
+### C. 配置一致性（影响实验复现）✅ 已完成 2026-04-25
+
+- [x] **C1. `default.yaml` 与 `college_msg.yaml` feedback.p_accept** — 改为 p_pos/p_neg；加 user_selector、cooldown_mode: decay
+- [x] **C2. `college_msg.yaml` 缺字段** — 补全 init_strategy/user_selector/cooldown_mode/cold_start_random_fill
+- [x] **C3. hidden_dim 矛盾** — 在 default.yaml/college_msg.yaml 加注释"在线小图用 8/离线大图用 64"
+- [x] **C4. FeedbackSimulator p_accept 接口** — 加 DeprecationWarning，p_pos 为主接口
+
+### D. BLUEPRINT.md 大量过期（影响 LLM 检索成本）
+
+- [ ] **D1. 文件:行 索引整体过期**
+  - 实测对比：`run_online_simulation` 文档写 `loop.py:58` 实际 `:78`；`OnlineTrainer.score` 写 `:64` 实际 `:342`；`OnlineTrainer.update` 写 `:81` 实际 `:421`；`OnlineEnv.step` 写 `:80` 实际 `:294`
+  - 改：跑一次 `/blueprint-update`，重新抓取所有函数定义行号；建议添加一个 hook 脚本周期性校验
+
+- [ ] **D2. 目录树中 `configs/` 重复出现两次（行 25、103）**
+  - 改：合并为单棵子树，online 作为 configs/ 子目录列出
+
+- [ ] **D3. `configs/online/` 实际 18 个 yaml，BLUEPRINT 仅列 3 个**
+  - 改：补齐 `default.yaml / sbm_smoke.yaml / college_msg_*.yaml(全部) / facebook_ego_exp1.yaml / college_msg_init*.yaml` 等
+
+- [ ] **D4. `src/dataset/real/` 缺新 loader**
+  - 改：补 `facebook_ego.py / lastfm_asia.py / ogbl_collab.py / twitch_gamers.py`（PROGRESS 已记录添加）
+
+- [ ] **D5. `scripts/` 列举不全**
+  - 改：补 `download_new_datasets.py / preprocess_new_datasets.py / precompute_subgraphs.py / run_encoder_ablation.py / run_hidden_dim_ablation.sh / run_online_sim_win.py / _estimate.py / _profile_round.py`
+
+- [ ] **D6. `src/dataset/synthetic/` 缺 `synth_dataset.py`；`tests/` 缺 `bench_optimizations.py / smoke_model.py / inspect_subgraphs.py / process_college_msg.py / gen_sbm_data.py`**
+  - 改：完整列举或在 BLUEPRINT 写"以下文件不进 index：辅助/旧脚本"白名单
+
+- [ ] **D7. BLUEPRINT 注释 `# ← 新（P2-3）` `# ← 新（Step 7）` 等编号引用已废**
+  - 改：清除所有 P0/P1/P2/Step N 注释，改为日期标签或删除
+
+- [ ] **D8. "已知扩展点 5. 子图缓存（TODO）" 与 MISTAKES.md [2026-04-15] 子图缓存磁盘爆炸 教训冲突**
+  - 改：注明"小图（n<5000）禁用磁盘缓存，已改为 TimeAdjacency 内存方案"；TODO 改为"评估大图启用条件"
+
+### E. PROGRESS.md / TODO.md 状态同步
+
+- [ ] **E1. `PROGRESS.md` 顶部任务"CollegeMsg 全量运行"标 🟡 运行中**
+  - 实际：`results/online/college_msg_full/rounds.csv` 已存在且 git status 显示已修改；应改为"已完成 + 结果摘要"
+
+- [ ] **E2. `PROGRESS.md` 早期任务（Phase 4 进行中、Bitcoin-OTC × 3 Encoder 进行中、Scorer 数值爆炸）日期是 2026-04-09 ~ 04-10 状态长期"进行中"**
+  - 改：归档至 `docs/progress.md` 历史日志，PROGRESS.md 只留近 2 周活跃任务
+
+- [ ] **E3. `PROGRESS.md` 新数据集接入：epinions / twitch / ogbl_collab 仍标"运行中"或"⏳"**
+  - 改：根据 `results/logs/` 的 train.json 更新；缺失就明确写"未启动"
+
+- [ ] **E4. `PROGRESS.md` encoder_type 消融"运行中"无最终结果**
+  - 改：补充 last/layer_concat/layer_sum 的 val MRR/Hits@10 三行表
+
+- [ ] **E5. `TODO.md` Phase 6 中 "encoder_type 消融"既在 [ ] 列表又在已完成结果表**
+  - 改：删 [ ] 条目，结果汇总放 PROGRESS.md/docs/progress.md
+
+- [ ] **E6. `TODO.md` 性能优化"离线子图缓存（高优先级）"与"训练速度优化策略"DECISIONS / MISTAKES 冲突**
+  - 改：标 superseded，改为"按数据集规模条件性启用（n>50k 才缓存）"
+
+### F. MISTAKES / DECISIONS 整理
+
+- [ ] **F1. `MISTAKES.md` 已解决 ✓ 条目（在线精排崩溃 / init_edge_ratio 消融失效）可移到 `MISTAKES_archive.md`**
+  - 改：每 ~20 条触发 `/meta-reflect` 后归档，主文件保留"复发可能"警觉信号
+
+- [ ] **F2. `DECISIONS.md` [2026-04-20] 放弃 college_msg legacy 状态写 active，但 [2026-04-21] 整体切到在线仿真**
+  - 改：标 `superseded by [2026-04-21] 在线仿真切换`
+
+### G. 其他细节
+
+- [ ] **G1. `recall/heuristic.py` `_two_hop_scores` 命名误导**：函数仅作小图 fallback 路径，但名字暗示通用 2-hop。改名 `_two_hop_scores_fallback` 或在 docstring 注明"仅作 fallback"
+
+- [ ] **G2. `community.py` greedy_modularity_communities 在 75k 节点 Epinions 上 O(E log V)，每 20 轮全量重算开销大**
+  - 改：写明"建议在 n>50k 数据集禁用 community_random，或将 recompute_every_n 调大到 100"
+
+- [ ] **G3. `loop.py::_load_dataset` 加载 `college_msg` 后丢弃 timestamp，online 仿真时初始化策略基于随机/分层而非时序**
+  - 改：在 docstring 显式注明"在线仿真不消费时间戳，时序顺序仅在 'init_strategy=temporal_prefix'（待加）时使用"
+
+- [ ] **G4. `register.py` 注释列出召回方法少 `common_neighbors` 与 `union`**
+  - 改：docstring 与 ValueError 信息保持完整列表
+

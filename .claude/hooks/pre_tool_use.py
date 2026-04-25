@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 PreToolUse hook: 拦截危险操作和违规模式。
-- 拦截 cat 大文件（>200行）
 - 拦截 & 后台训练
 - 拦截危险命令（rm -rf / git reset --hard / git push --force / drop table）
 """
@@ -22,7 +21,6 @@ DANGEROUS_PATTERNS = [
 ]
 
 BG_PATTERN = re.compile(r'python\s+.*train.*&\s*$')
-CAT_LARGE_PATTERN = re.compile(r'\bcat\b')
 
 def check_bash_command(command: str) -> str | None:
     """返回 block 原因，None 表示放行"""

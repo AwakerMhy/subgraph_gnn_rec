@@ -94,6 +94,20 @@ class StaticAdjacency:
     def has_edge(self, u: int, v: int) -> bool:
         return v in self._out[u]
 
+    def out_degree(self, node: int) -> int:
+        return len(self._out[node])
+
+    def in_degree(self, node: int) -> int:
+        return len(self._in[node])
+
+    def out_neighbors_set(self, node: int) -> set[int]:
+        """只读返回 out 邻居集合的引用，供需要 set 视图的调用者使用。"""
+        return self._out[node]
+
+    def in_neighbors_set(self, node: int) -> set[int]:
+        """只读返回 in 邻居集合的引用，供需要 set 视图的调用者使用。"""
+        return self._in[node]
+
     def num_edges(self) -> int:
         return self._n_edges
 
