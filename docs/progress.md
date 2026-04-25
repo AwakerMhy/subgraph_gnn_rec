@@ -1,7 +1,7 @@
 # docs/progress.md — 历史变更日志
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-20
+> 最后更新：2026-04-25
 
 ---
 
@@ -58,3 +58,10 @@
 [2026-04-21 00:00] [综合改进 P0+P1+P2 全落地] [src/online/feedback.py, src/online/env.py, src/online/user_selector.py(新建), src/online/evaluator.py, src/online/loop.py, src/recall/base.py, src/recall/ppr.py(新建), src/recall/community.py(新建), src/recall/mixture.py(新建), src/recall/registry.py, src/baseline/mlp_link.py(新建), scripts/visualize_online_run.py(新建), scripts/run_ablation_grid.py(新建), configs/online/college_msg_full.yaml(新建), configs/online/college_msg_no_replay.yaml(新建), tests/test_feedback_probabilistic.py+test_recall_ppr.py+test_recall_mixture.py+test_user_selector.py+test_env_init_sampling.py+test_cooldown_decay.py+test_evaluator_metrics.py(新建)] [完成 — 173例测试全通过，5轮烟测 coverage 0.069→0.076，precision@K 4.2%]
 
 [2026-04-25] [专家 review：修复 A 组代码逻辑错误 + C 组配置一致性] [src/online/loop.py(recall_cfg 整体透传), src/recall/registry.py(union→报错, mixture schema 校验), src/online/evaluator.py(Hits@K 循环所有 K, MRR 改标准最佳 rank), tests/test_evaluator_metrics.py(rec_coverage 断言更新), src/online/static_adj.py(out/in_degree 公共方法), src/online/trainer.py(改用公共方法), src/online/feedback.py(p_accept DeprecationWarning), configs/online/default.yaml+college_msg.yaml(p_pos/p_neg/cooldown_mode/user_selector 补全)] [完成 — 6项 A 组全验证通过，4项 C 组配置对齐]
+
+[2026-04-25] [在线仿真扩展数据集：email_eu + sx_mathoverflow 100轮测试] [configs/online/email_eu_full.yaml(新建), configs/online/sx_mathoverflow_full.yaml(新建), results/online/email_eu_full/(新建), results/online/sx_mathoverflow_full/(新建)] [完成]
+- email_eu (986节点/24,929边)：MRR@10 mean=0.328，coverage末轮0.184，每轮~0.2s
+- sx_mathoverflow (24,759节点/390,441边)：MRR@10 mean=0.331（67/100轮有效），coverage末轮0.074，每轮~4s
+- bitcoin_otc (5,881节点/35,592边，上轮已完成)：MRR@10 ~0.02（有向信任图结构较难，评估触发轮次少）
+- 四数据集横向对比：email_eu/sx_mathoverflow MRR@10≈0.33，与 college_msg 接近；bitcoin_otc 明显偏低
+- sx_mathoverflow coverage 100轮仅7.4%，图太大需增加 total_rounds 或 sample_ratio 才能充分覆盖

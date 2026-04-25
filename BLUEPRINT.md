@@ -1,4 +1,4 @@
-# BLUEPRINT — Temporal Social Link Prediction via 2-Hop Subgraph GNN
+# BLUEPRINT — Social Network Online Learning Simulation
 
 > 创建时间：2026-04-08 15:30
 > 最后更新：2026-04-24
