@@ -131,6 +131,37 @@ class CommonNeighborsRecall(RecallBase):
         return sorted(scores_d.items(), key=lambda x: -x[1])[:top_k]
 
 
+# ── TwoHopRandomRecall ───────────────────────────────────────────────────────
+
+class TwoHopRandomRecall(CommonNeighborsRecall):
+    """2-hop 候选池随机截断——彻底去除 CN 分偏置，用随机采样替代 top-k by score。
+
+    与 CommonNeighborsRecall 的唯一区别：candidates() 从所有 2-hop 邻居中
+    随机取 top_k 个（分数统一置 1.0），不按 CN 数量排序。
+    """
+
+    def __init__(self, time_adj: "TimeAdjacency", n_nodes: int, seed: int = 42) -> None:
+        super().__init__(time_adj, n_nodes)
+        self._rng = np.random.default_rng(seed)
+
+    def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
+        scores = self._cache.get(u)
+        if scores is not None:
+            exclude = set(self._time_adj.out_neighbors(u)) | {u}
+            nonzero = np.where(scores > 0)[0]
+            cands = [int(v) for v in nonzero if v not in exclude]
+        else:
+            scores_d = _two_hop_scores(u, cutoff_time, self._time_adj, use_adamic_adar=False)
+            cands = list(scores_d.keys())
+
+        if not cands:
+            return []
+        if len(cands) <= top_k:
+            return [(v, 1.0) for v in cands]
+        chosen = self._rng.choice(len(cands), size=top_k, replace=False)
+        return [(cands[i], 1.0) for i in chosen]
+
+
 # ── AdamicAdarRecall ──────────────────────────────────────────────────────────
 
 class AdamicAdarRecall(RecallBase):

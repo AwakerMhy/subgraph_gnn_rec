@@ -65,3 +65,41 @@
 - bitcoin_otc (5,881节点/35,592边，上轮已完成)：MRR@10 ~0.02（有向信任图结构较难，评估触发轮次少）
 - 四数据集横向对比：email_eu/sx_mathoverflow MRR@10≈0.33，与 college_msg 接近；bitcoin_otc 明显偏低
 - sx_mathoverflow coverage 100轮仅7.4%，图太大需增加 total_rounds 或 sample_ratio 才能充分覆盖
+
+[2026-04-25] [弱项分析 + cyclic LR：bitcoin_alpha GNN vs random 对比实验] [src/online/schedule.py(+cyclic策略), src/online/loop.py(透传cycle_rounds), configs/online/bitcoin_alpha_weak_recall.yaml(新建), configs/online/bitcoin_alpha_weak_recall_random.yaml(新建), configs/online/bitcoin_alpha_cyclic_lr.yaml(新建)] [完成]
+- 根因分析：高互惠率(83%)图上AA召回已隐式覆盖互惠对，GNN精排无增量信号；cosine decay后期lr→1e-5导致模型停止更新，无法适应distribution shift
+- 弱召回(PPR+community，去掉AA)验证：GNN mean 0.305→0.338，early已超random，但late仍崩塌(0.234)
+- cyclic LR(周期25轮)验证：late 0.234→0.332(+42%)，mean 0.338→0.365，首次在bitcoin_alpha上GNN整体超过random
+- 结论：弱召回+cyclic lr 是高互惠稀疏图的推荐配置；distribution shift是核心问题，不是模型结构
+
+[2026-04-25] [多数据集系统性实验：GNN vs MLP vs random，召回策略与LR调度消融] [configs/online/*_cyclic/*.yaml(批量新建), configs/online/*_mlp.yaml(批量新建), src/online/schedule.py(+cyclic策略), src/online/loop.py(透传cycle_rounds), scripts/plot_coverage.py(新建), results/online/coverage_trend.png+mrr_trend.png] [完成]
+
+核心发现汇总：
+
+1. 数据集筛选规则
+   - 无向图（recip≥0.95）不适合测：AA召回已完全覆盖，GNN无增量价值（facebook_ego/lastfm_asia验证）
+   - 稠密图（deg_mean≥20）不适合测：子图高度重叠，GNN判别信号消失（facebook_ego deg=43.7验证）
+   - 推荐数据集：bitcoin_alpha/otc、epinions、sx_askubuntu/superuser（有向+稀疏）
+
+2. 召回策略影响
+   - 强召回（AA+PPR+community）使GNN精排无增量价值，因为AA已隐式覆盖互惠对
+   - 弱召回（PPR+community，去掉AA）让GNN mean MRR: 0.305→0.338，early首次超过random
+   - 结论：弱召回才能给GNN留下可学习的结构判别空间
+
+3. Cyclic LR vs Cosine Decay
+   - cosine decay后期lr→1e-5，模型后30轮基本停止更新，无法应对distribution shift
+   - cyclic LR（周期25轮）：bitcoin_alpha late MRR 0.234→0.332(+42%)，mean首次超过random
+   - 弱召回+cyclic LR是高互惠稀疏图的推荐配置
+
+4. GNN vs MLP vs random 三路对比规律
+   - GNN early几乎总是领先random（5/5有对照数据集，唯一例外bitcoin_otc因用了强召回）
+   - MLP后期稳定性最差（late崩塌最严重），度特征随图演化漂移剧烈
+   - GNN整体最稳定，epinions上mean MRR: GNN=0.439 > random=0.432 > MLP=0.391
+
+5. Coverage趋势
+   - 三种模型coverage曲线几乎重叠，覆盖率由用户选择策略决定，与模型无关
+   - epinions/sx_askubuntu 100轮coverage仅10-19%，大图需要更多轮才能充分覆盖
+
+6. 核心瓶颈：distribution shift
+   - GNN在图稀疏时（early）结构判别能力最强，随图变稠密训练分布漂移，优势收窄
+   - 假设：更低的init_edge_ratio可延长稀疏阶段，对GNN更有利（待验证）

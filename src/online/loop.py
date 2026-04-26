@@ -152,6 +152,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             warmup_steps=sched_cfg.get("warmup_rounds", 5),
             min_lr=sched_cfg.get("min_lr", 1e-5),
             strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
         )
         trainer = None
     else:
@@ -169,6 +170,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             warmup_steps=sched_cfg.get("warmup_rounds", 5),
             min_lr=sched_cfg.get("min_lr", 1e-5),
             strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
         )
         trainer = OnlineTrainer(
             model=model,

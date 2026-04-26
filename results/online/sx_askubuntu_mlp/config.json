@@ -1,0 +1,66 @@
+{
+  "dataset": {
+    "path": "data/processed/sx_askubuntu/edges.csv",
+    "type": "sx_askubuntu"
+  },
+  "eval": {
+    "degree_bins": 50,
+    "graph_every_n": 10,
+    "k_list": [
+      5,
+      10,
+      20
+    ]
+  },
+  "feedback": {
+    "cooldown_mode": "decay",
+    "cooldown_rounds": 5,
+    "p_neg": 0.02,
+    "p_pos": 0.8
+  },
+  "init_edge_ratio": 0.05,
+  "init_strategy": "stratified",
+  "model": {
+    "hidden_dim": 64,
+    "type": "mlp"
+  },
+  "recall": {
+    "alpha": 0.15,
+    "method": "ppr",
+    "top_k": 50
+  },
+  "recommend": {
+    "cold_start_random_fill": true,
+    "top_k": 10
+  },
+  "replay": {
+    "capacity": 500,
+    "sample_n": 64
+  },
+  "runtime": {
+    "device": "cuda",
+    "log_every": 1,
+    "out_dir": "results/online/sx_askubuntu_mlp",
+    "seed": 42
+  },
+  "total_rounds": 100,
+  "trainer": {
+    "lr": 0.001,
+    "scheduler": {
+      "cycle_rounds": 25,
+      "min_lr": 1e-05,
+      "strategy": "cyclic",
+      "warmup_rounds": 5
+    },
+    "update_every_n_rounds": 1
+  },
+  "user_selector": {
+    "alpha": 0.5,
+    "beta": 2.0,
+    "gamma": 2.0,
+    "lam": 0.1,
+    "sample_ratio": 0.01,
+    "strategy": "composite",
+    "w": 3
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "dataset": {
+    "path": "data/processed/dnc_email/edges.csv",
+    "type": "dnc_email"
+  },
+  "eval": {
+    "degree_bins": 50,
+    "graph_every_n": 10,
+    "k_list": [
+      5,
+      10,
+      20
+    ]
+  },
+  "feedback": {
+    "cooldown_mode": "decay",
+    "cooldown_rounds": 5,
+    "p_neg": 0.02,
+    "p_pos": 0.8
+  },
+  "init_edge_ratio": 0.05,
+  "init_strategy": "stratified",
+  "model": {
+    "type": "random"
+  },
+  "recall": {
+    "components": [
+      {
+        "alpha": 0.15,
+        "name": "ppr",
+        "top_k": 25
+      },
+      {
+        "name": "community_random",
+        "top_k": 25
+      }
+    ],
+    "method": "mixture",
+    "top_k_recall": 50
+  },
+  "recommend": {
+    "cold_start_random_fill": true,
+    "top_k": 10
+  },
+  "replay": {
+    "capacity": 0,
+    "sample_n": 0
+  },
+  "runtime": {
+    "device": "cpu",
+    "log_every": 1,
+    "out_dir": "results/online/dnc_email_random_cyclic",
+    "seed": 42
+  },
+  "total_rounds": 100,
+  "trainer": {
+    "update_every_n_rounds": 1
+  },
+  "user_selector": {
+    "alpha": 0.5,
+    "beta": 2.0,
+    "gamma": 2.0,
+    "lam": 0.1,
+    "sample_ratio": 0.1,
+    "strategy": "composite",
+    "w": 3
+  }
+}

@@ -1,9 +1,24 @@
 # DECISIONS — 架构决策记录
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-24
+> 最后更新：2026-04-25
 >
 > **做新决策前必读，遇到看似"奇怪"的设计先查这里。**
+
+---
+
+## [2026-04-25] 跨数据集对比实验：召回统一用 two_hop_random
+
+- **背景**：在 9 个有向稀疏图数据集上对比 GNN / MLP / Random 三个 ranker，需要一个公平、中性的召回基线
+- **备选方案**：
+  - PPR：全图随机游走，暴露全局结构，召回质量高但对 ranker 间差异有天花板压制
+  - CN scored（common_neighbors）：局部 2-hop，但按共同邻居数截断，引入 CN 分偏置
+  - 2-hop 随机截断（two_hop_random）：从所有 2-hop 邻居中随机取 top_k_recall，彻底去除打分偏置
+- **决定**：统一用 `two_hop_random`，`top_k_recall=100`，全数据集一致
+- **原因**：召回只定义候选池，ranker 负责所有打分；随机截断让召回最"中性"，三个 ranker 的差异完全由 ranker 本身决定，对比最干净
+- **其他设置**：scheduler=cyclic(cycle=25)，GNN hidden_dim=8/num_layers=3，MLP hidden_dim=64，top_k=5，p_pos=0.8/p_neg=0.02，小图 sample_ratio=0.1/大图 0.01
+- **后果**：召回正样本覆盖率可能低于 CN scored，但实验对比更可信；新增 `TwoHopRandomRecall` 类于 `src/recall/heuristic.py`
+- **状态**：active
 
 ---
 

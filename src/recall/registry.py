@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from src.recall.base import RecallBase
-from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall
+from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall, TwoHopRandomRecall
 
 if TYPE_CHECKING:
     from src.graph.subgraph import TimeAdjacency
@@ -18,7 +18,7 @@ def build_recall(
     """根据 config 构造召回器实例。
 
     method 可选值：
-        'common_neighbors' | 'adamic_adar' |
+        'common_neighbors' | 'two_hop_random' | 'adamic_adar' |
         'ppr' | 'community_random' | 'mixture'
 
     mixture 需要额外字段 components: [{name, top_k, ...}, ...]
@@ -28,6 +28,8 @@ def build_recall(
 
     if method == "common_neighbors":
         return CommonNeighborsRecall(time_adj, n_nodes)
+    elif method == "two_hop_random":
+        return TwoHopRandomRecall(time_adj, n_nodes, seed=cfg_recall.get("seed", 42))
     elif method == "adamic_adar":
         return AdamicAdarRecall(time_adj, n_nodes)
     elif method == "ppr":
