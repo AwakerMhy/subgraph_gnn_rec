@@ -1,7 +1,7 @@
 # DECISIONS — 架构决策记录
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-25
+> 最后更新：2026-04-26
 >
 > **做新决策前必读，遇到看似"奇怪"的设计先查这里。**
 
@@ -92,6 +92,19 @@
 - **决定**：方案 B，`p_pos=0.8, p_neg=0.02`
 - **原因**：p_neg>0 引入的探索性接受（非 G\* 边写入 G_t）更贴近真实系统；p_pos<1 模拟用户决策延迟/犹豫。coverage 统计仍仅计 G\* 命中，不被探索边污染
 - **后果**：`FeedbackSimulator` 接受 `p_pos/p_neg` 两参，`p_accept` 作为 `p_pos` 的向后兼容别名；`p_neg=0.0` 时退化为旧行为
+- **状态**：superseded by [2026-04-26]
+
+---
+
+## [2026-04-26] 概率化反馈模型参数调整：p_pos=0.95 / p_neg=0.0
+
+- **背景**：p_pos=0.8 引入的 20% 真实关系拒绝率给训练负样本带来额外噪声；p_neg=0.02 让非 G\* 边写入 G_t，污染网络演化轨迹，不符合"驱动网络向真实形态演化"的叙事
+- **备选方案**：
+  - 方案 A：保持 p_pos=0.8 / p_neg=0.02，接受噪声
+  - 方案 B：p_pos=0.95 / p_neg=0.0，降低假负噪声、去除虚假正样本写入（本项目选择）
+- **决定**：方案 B，`p_pos=0.95, p_neg=0.0`
+- **原因**：p_neg=0.0 确保 G_t 仅由真实关系构成，使网络演化追真度指标（degree KL / clustering / motif）有意义；p_pos=0.95 仍保留少量用户犹豫噪声，不退化为 Oracle 反馈；§5.3 噪声鲁棒性消融可用 p_pos∈{0.95,0.8,0.5} 展示 GNN 抗噪优势
+- **后果**：159 个 `configs/online/*.yaml` 统一更新；`p_neg=0.0` 下 `recall_rejected` 噪声降低，hard negative mining（§2）信噪比提升；训练信号更干净但探索性减弱
 - **状态**：active
 
 ---
@@ -369,3 +382,77 @@
 - **原因**：链接预测任务天然是时序预测，随机切分会造成标签泄露；分位数切分最常见也最公平
 - **后果**：`split.py` 必须含断言检查，确保 val/test 中无训练集时间范围内的边
 - **状态**：active
+
+---
+
+## [2026-04-26] 在线仿真训练信号设计：p_pos=1.0 + top_k=3 为 college_msg 最优配置
+
+- **背景**：经过系统性实验，GNN 在 college_msg 上持续弱于 Random（mrr3: 0.335 vs 0.407），多轮 LR/schedule 调优未能解决
+- **诊断实验**：
+  - p_pos=1.0（消除假负例）→ mrr3: 0.335→0.422，首次超越 Random
+  - top_k=10/20（p_pos=0.95）→ mrr3 急剧下降（0.177/0.128），假负例被放大
+  - MLP + bitcoin_alpha ppos1.0 ≈ ppos0.95（效果无差）→ 排除假负例是 bitcoin_alpha 失效根因
+- **三类失效模式**：
+  1. **假负例毒害**（college_msg / dnc_email）：p_pos<1 使被拒绝的 G* 边以 label=0 进入训练；top_k 越大放大越明显 → 修复：p_pos=1.0
+  2. **结构不匹配**（bitcoin_alpha）：2-hop 子图对 trust 网络无有效判别信号，GNN/MLP 同等失败，消除假负例无效 → 无法用训练信号修复，需换特征
+  3. **任务退化**（email_eu）：recall_prec=17.9%（vs 其他数据集 2-3%），random 探索即可覆盖 100% G*，GNN 加不了额外价值
+- **决定**：
+  - college_msg / dnc_email 类数据集：使用 p_pos=1.0，top_k=3（最优 mrr），accept 低 coverage 的 tradeoff
+  - bitcoin_alpha 类 trust 网络：后续需考虑换用非结构特征（如度特征、历史连接强度），或换子图标记策略
+  - email_eu 类稠密图：recall 精度本身已是瓶颈，GNN 精排没有意义，应聚焦改进召回层
+- **关键数字（college_msg，topk=3，ppos=1.0）**：mrr3=0.665，+63% vs Random(0.407)，cov_gain=17.8%
+- **后果**：p_pos=1.0 等价于"仿真中用户完美接受所有真实边"，使在线系统不再模拟用户随机拒绝的噪声；研究问题从"不完美反馈下能否学习"退化为"完美反馈下能否收敛"。这是一个实验设计上的取舍，需在论文中明确说明
+- **状态**：active
+
+---
+
+## [2026-04-26] recall 精度是 GNN 增益的先决条件
+
+- **背景**：四个数据集上 GNN 表现差异巨大，需要理解决定因素
+- **诊断**：对四个数据集在 init_edge_ratio=0.2 的图上采样 200 用户，统计 100-candidate recall pool 中 G* 边占比
+  | 数据集 | recall_prec | GNN vs Random |
+  |---|---|---|
+  | college_msg | 3.0% | 赢（+63% mrr，topk3 ppos1） |
+  | dnc_email | 2.9% | 赢（+9.5% mrr，ppos1） |
+  | bitcoin_alpha | 2.0% | 输（−9.3%） |
+  | email_eu | 17.9% | 输（−19.4%） |
+- **决定**：recall 精度本身不能解释 GNN 成败（bitcoin_alpha 精度低但 GNN 仍输），真正的决定因素是**结构特征是否对该数据集的链路形成具有预测力**。recall 精度高（email_eu）则任务退化为随机采样问题，GNN 无用武之地；recall 精度低但结构不匹配（bitcoin_alpha）则 GNN 有害无益
+- **后果**：新数据集接入前，先运行 recall 精度诊断（`src/online/loop.py` 外挂脚本），精度 > 10% 的数据集应优先改进召回层而非精排模型
+- **状态**：active
+
+---
+
+## [2026-04-26] GNN coverage 不如 random 的结构性原因分析
+
+- **背景**：跨数据集实验中，GNN ranker 的 `coverage`（`|E_t ∩ E*| / |E*|`）系统性低于 Random，需要理解根因以指导后续改进
+- **诊断**：通过追踪 `loop.py → trainer.score_batch → _build_flat_batched_graph → evaluator` 数据流，识别出四层失效机制：
+
+  **① 结构偏好 → 推荐集中在局部密集区**
+  子图 = `{u,v} ∪ N(u)`（ego_cn 设计，`trainer.py:255`），打分依赖共同邻居数与 DRNL 标签。GNN 天然给"与 u 共享大量邻居的节点"高分。G* 中跨社区、两端无公共邻居的长程边 GNN 分低 → 被排在 top-K 后面 → 永远不被推荐。Random 均匀采样，跨社区 G* 边也能被触达。
+
+  **② 正反馈闭环 → 密集区越来越密**
+  `GNN 高分推荐 → 被接受 → 加入 G_t → 该区域更稠密 → 下轮子图更丰富 → 分更高 → 继续推荐`。稀疏区子图始终信息不足，GNN 给出保守低分，该区域 G* 边从不被发现。
+
+  **③ 训练信号选择偏差 → 梯度也集中在局部**
+  训练用 `feedback.accepted` (pos) + `recall_rejected` (neg)（`loop.py:341`）。召回（two_hop_random / AA）只覆盖 2-hop 邻居，训练样本来自已有稠密区。GNN 越训越偏向局部打高分，对全局稀疏区无梯度信号。
+
+  **④ `rec_coverage@k` 指标揭示症状**（`evaluator.py:176`）
+  `rec_coverage@k = unique_rec_targets / all_cand_targets`。多用户 GNN top-k 收敛到同一批 hub 节点，unique_targets 低；Random 各用户指向不同节点，unique_targets 高。
+
+- **根本矛盾**：GNN 精准捕捉结构相似性的优势恰好是 coverage 的敌人——它在召回池内做了第二次"结构过滤"，把跨社区 G* 边从 top-K 挤出去了
+
+  | 层次 | GNN | Random |
+  |---|---|---|
+  | 打分依据 | 共同邻居 / 结构相似度 | 均匀随机 |
+  | 推荐分布 | 集中在局部密集区 | 全图均匀 |
+  | G* 覆盖 | 只触达邻近区 G* 边 | 全局触达 |
+  | 反馈效应 | 正循环放大偏差 | 无偏差放大 |
+
+- **改进方向**（待实施，按优先级）：
+  1. **社区感知配额**：按社区配额强制推荐跨社区候选，直接打破 ego 偏置，实现简单对症
+  2. **MMR 多样性重排**：`λ·score(v) - (1-λ)·max_sim(v, selected)`，保证 top-K 内节点多样
+  3. **Softmax Temperature 退火**：将 GNN 分过 `softmax(score/τ)` 采样，τ 从大退到小，比 ε-greedy 平滑
+  4. **MC Dropout 不确定性探索**：推断时保持 dropout，优先推荐方差高（模型不确定）的节点
+  5. **度分层采样**：低度节点单独维护候选池，防止 hub 节点垄断 top-K
+
+- **状态**：active（分析已完成，改进方案待选择实施）

@@ -15,8 +15,8 @@
   "feedback": {
     "cooldown_mode": "decay",
     "cooldown_rounds": 5,
-    "p_neg": 0.02,
-    "p_pos": 0.8
+    "p_neg": 0.0,
+    "p_pos": 0.95
   },
   "init_edge_ratio": 0.05,
   "init_strategy": "stratified",
@@ -28,7 +28,18 @@
     "type": "gnn"
   },
   "recall": {
-    "method": "two_hop_random",
+    "components": [
+      {
+        "name": "two_hop_random",
+        "top_k": 70
+      },
+      {
+        "alpha": 0.15,
+        "name": "ppr_nodes",
+        "top_k": 30
+      }
+    ],
+    "method": "mixture",
     "top_k_recall": 100
   },
   "recommend": {

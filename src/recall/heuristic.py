@@ -162,6 +162,30 @@ class TwoHopRandomRecall(CommonNeighborsRecall):
         return [(cands[i], 1.0) for i in chosen]
 
 
+# ── GlobalRandomRecall ───────────────────────────────────────────────────────
+
+class GlobalRandomRecall(RecallBase):
+    """从全图节点中随机采样候选，突破 2-hop 结构约束。
+
+    不依赖图结构，直接从 {0..n_nodes-1} \ {u} 中均匀随机抽取 top_k 个节点。
+    配合 MixtureRecall 使用时可覆盖结构距离远的 G* 边。
+    """
+
+    def __init__(self, time_adj: "TimeAdjacency", n_nodes: int, seed: int = 42) -> None:
+        self._n = n_nodes
+        self._rng = np.random.default_rng(seed)
+
+    def update_graph(self, round_idx: int) -> None:
+        pass
+
+    def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
+        all_nodes = np.arange(self._n, dtype=np.int32)
+        pool = all_nodes[all_nodes != u]
+        k = min(top_k, len(pool))
+        chosen = self._rng.choice(pool, size=k, replace=False)
+        return [(int(v), 0.0) for v in chosen]
+
+
 # ── AdamicAdarRecall ──────────────────────────────────────────────────────────
 
 class AdamicAdarRecall(RecallBase):

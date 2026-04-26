@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from src.recall.base import RecallBase
-from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall, TwoHopRandomRecall
+from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall, GlobalRandomRecall, TwoHopRandomRecall
 
 if TYPE_CHECKING:
     from src.graph.subgraph import TimeAdjacency
@@ -19,7 +19,7 @@ def build_recall(
 
     method 可选值：
         'common_neighbors' | 'two_hop_random' | 'adamic_adar' |
-        'ppr' | 'community_random' | 'mixture'
+        'ppr' | 'ppr_nodes' | 'community_random' | 'mixture'
 
     mixture 需要额外字段 components: [{name, top_k, ...}, ...]
     旧的 'union' 别名已废弃（DECISIONS.md [2026-04-21]），请改用 mixture。
@@ -32,9 +32,18 @@ def build_recall(
         return TwoHopRandomRecall(time_adj, n_nodes, seed=cfg_recall.get("seed", 42))
     elif method == "adamic_adar":
         return AdamicAdarRecall(time_adj, n_nodes)
+    elif method == "global_random":
+        return GlobalRandomRecall(time_adj, n_nodes, seed=cfg_recall.get("seed", 42))
     elif method == "ppr":
         from src.recall.ppr import PPRRecall  # noqa: PLC0415
         return PPRRecall(
+            time_adj, n_nodes,
+            alpha=cfg_recall.get("alpha", 0.15),
+            max_iter=cfg_recall.get("max_iter", 20),
+        )
+    elif method == "ppr_nodes":
+        from src.recall.ppr import PPRNodesRecall  # noqa: PLC0415
+        return PPRNodesRecall(
             time_adj, n_nodes,
             alpha=cfg_recall.get("alpha", 0.15),
             max_iter=cfg_recall.get("max_iter", 20),
@@ -74,5 +83,5 @@ def build_recall(
     else:
         raise ValueError(
             f"未知召回策略: {method!r}，支持 'common_neighbors' | 'adamic_adar' | "
-            f"'ppr' | 'community_random' | 'mixture'"
+            f"'ppr' | 'community_random' | 'global_random' | 'mixture'"
         )

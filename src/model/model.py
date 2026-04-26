@@ -35,11 +35,15 @@ class LinkPredModel(nn.Module):
         scorer_hidden_dim: int | None = None,
         encoder_type: str = "last",
         node_feat_dim: int = 0,
+        n_nodes: int = 0,
+        node_emb_dim: int = 0,
     ) -> None:
         """
         Args:
-            scorer_hidden_dim: Scorer MLP 隐层维度。
-                               默认 None，自动设为 hidden_dim，使 Scorer 容量与 Encoder 对等。
+            scorer_hidden_dim: Scorer MLP 隐层维度。默认 None，自动设为 hidden_dim。
+            n_nodes:           节点总数，node_emb_dim > 0 时必须提供。
+            node_emb_dim:      可学习节点嵌入维度；0 表示不使用（默认）。
+                               使用时 Scorer 输入 = GIN_out + emb(u) + emb(v)。
         """
         super().__init__()
         self.encoder_type = encoder_type
@@ -61,6 +65,14 @@ class LinkPredModel(nn.Module):
             scorer_in_dim += hidden_dim
         else:
             self.attr_encoder = None
+
+        if node_emb_dim > 0 and n_nodes > 0:
+            self.node_emb = nn.Embedding(n_nodes, node_emb_dim)
+            nn.init.xavier_uniform_(self.node_emb.weight)
+            scorer_in_dim += node_emb_dim * 2
+        else:
+            self.node_emb = None
+        self.node_emb_dim = node_emb_dim
 
         _scorer_hidden = scorer_hidden_dim if scorer_hidden_dim is not None else hidden_dim
         self.scorer = Scorer(in_dim=scorer_in_dim, hidden_dim=_scorer_hidden)
@@ -138,6 +150,13 @@ class LinkPredModel(nn.Module):
                 v_feat = bg.ndata["node_feat"][v_mask]   # (B, feat_dim)
                 h_attr = self.attr_encoder(u_feat, v_feat)  # (B, hidden_dim)
                 h_graphs = torch.cat([h_graphs, h_attr], dim=-1)
+
+            if self.node_emb is not None:
+                node_ids = bg.ndata["_node_id"]
+                u_ids = node_ids[u_mask]   # (B,)
+                v_ids = node_ids[v_mask]   # (B,)
+                h_node = torch.cat([self.node_emb(u_ids), self.node_emb(v_ids)], dim=-1)  # (B, emb_dim*2)
+                h_graphs = torch.cat([h_graphs, h_node], dim=-1)
 
             return self.scorer(h_graphs)          # (B,)
 

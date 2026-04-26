@@ -42,8 +42,8 @@ def make_cfg(dataset, size, ranker, top_k, total_rounds):
         "feedback": {
             "cooldown_mode": "decay",
             "cooldown_rounds": 5,
-            "p_neg": 0.02,
-            "p_pos": 0.8,
+            "p_neg": 0.0,
+            "p_pos": 0.95,
         },
         "init_edge_ratio": 0.05,
         "init_strategy": "stratified",

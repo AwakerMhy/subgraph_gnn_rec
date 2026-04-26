@@ -1,7 +1,7 @@
 # BLUEPRINT — Social Network Online Learning Simulation
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-24
+> 最后更新：2026-04-27
 
 **本文件是项目地图，每次任务开始前必读。目的是减少 grep/read 开销。**
 
@@ -256,7 +256,8 @@ src/recall/heuristic.py
 | `run_online_simulation(cfg)` | `src/online/loop.py:58` |
 | `MLPLinkScorer` | `src/baseline/mlp_link.py:1` |
 | `extract_topo_features(adj, n_nodes, ...)` | `src/baseline/mlp_link.py:30` |
-| `LinkPredModel` | `src/model/model.py` |
+| `LinkPredModel(n_nodes, node_emb_dim)` | `src/model/model.py:19` |
+| `NodeEmbModel` | `src/model/node_emb_model.py:12` |
 
 ---
 
@@ -319,3 +320,4 @@ class TwoLayerEdgeSet:
 3. **负样本策略**（legacy）：`--neg_strategy random:0.5,hard_2hop:0.3,degree:0.2`
 4. **课程调度**：`--curriculum --curriculum_schedule linear|cosine|step`
 5. **子图缓存**：`cache_subgraphs()` / `load_cached_subgraphs()` 已实现（`subgraph.py:326`），接入 `train.py` 可得 10-30× 提速（TODO）
+6. **GNN + 节点嵌入混合**：`model.node_emb_dim > 0` 时在 GIN 图嵌入后 concat `emb(u) ‖ emb(v)` 再送 Scorer。config 中加 `node_emb_dim: <int>` 即可启用；`_build_flat_batched_graph` 写入 `g.ndata["_node_id"]` 供 lookup

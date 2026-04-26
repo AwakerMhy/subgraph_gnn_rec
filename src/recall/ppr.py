@@ -122,3 +122,14 @@ class PPRRecall(RecallBase):
             return []
         sorted_cands = sorted(scores.items(), key=lambda x: -x[1])
         return sorted_cands[:top_k]
+
+
+class PPRNodesRecall(PPRRecall):
+    """PPR 召回，但所有候选分数置 0.0（中性召回，不向 ranker 透露 PPR 排序信息）。
+
+    用于 mixture 召回时补充 2-hop 外的候选，同时保持召回对 ranker 的中立性。
+    """
+
+    def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
+        cands = super().candidates(u, cutoff_time, top_k)
+        return [(v, 0.0) for v, _ in cands]

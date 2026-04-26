@@ -140,6 +140,24 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         optimizer = None
         trainer = None
         scheduler = None
+    elif model_type == "node_emb":
+        from src.model.node_emb_model import NodeEmbModel  # noqa: PLC0415
+        model = NodeEmbModel(
+            n_nodes=n_nodes,
+            emb_dim=model_cfg.get("emb_dim", 64),
+            hidden_dim=model_cfg.get("hidden_dim", 64),
+        ).to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
+        )
+        trainer = None
     elif model_type == "mlp":
         from src.baseline.mlp_link import MLPLinkScorer, extract_topo_features  # noqa: PLC0415
         _mlp_topo_dim = 3 + node_feat_dim
@@ -161,6 +179,8 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             num_layers=model_cfg.get("num_layers", 3),
             encoder_type=model_cfg.get("encoder_type", "last"),
             node_feat_dim=node_feat_dim,
+            n_nodes=n_nodes,
+            node_emb_dim=model_cfg.get("node_emb_dim", 0),
         ).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
         sched_cfg = trainer_cfg.get("scheduler", {})
@@ -245,6 +265,8 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             gnn_score_map: dict[int, list[float]] = {
                 u: s for (u, _), s in zip(gnn_inputs, batch_scores)
             }
+        elif model_type == "node_emb":
+            model.eval()
         elif model_type == "mlp":
             from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
             # 打分用 t 轮开始时的 adj（env.step 之前）
@@ -252,6 +274,10 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             _feat_edge_count = adj.num_edges()  # 记录当前边数，训练时按需重算
 
         # ── Phase 3：构建推荐（top-K 精排） ─────────────────────────────────
+        # ε-greedy：线性衰减，round 0 时 ε=epsilon_start，末轮时 ε=epsilon_end
+        _eps_start = trainer_cfg.get("epsilon_start", 0.0)
+        _eps_end   = trainer_cfg.get("epsilon_end",   0.0)
+        _eps_t = _eps_end + (_eps_start - _eps_end) * max(0.0, 1.0 - t / max(total_rounds - 1, 1))
         for u in U:
             cand_nodes = user_cand_nodes[u]
             if not cand_nodes:
@@ -261,6 +287,11 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
                 recs[u] = [cand_nodes[int(i)] for i in perm]
                 continue
+            elif model_type == "node_emb":
+                u_t = torch.tensor([u] * len(cand_nodes), dtype=torch.long, device=device)
+                v_t = torch.tensor(cand_nodes, dtype=torch.long, device=device)
+                with torch.no_grad():
+                    scores = model(u_t, v_t).cpu().numpy()
             elif model_type == "mlp":
                 u_feat = feat[[u]].expand(len(cand_nodes), -1)
                 v_feat = feat[cand_nodes]
@@ -268,8 +299,12 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                     scores = model(u_feat, v_feat).cpu().numpy()
             else:
                 scores = gnn_score_map.get(u, [0.0] * len(cand_nodes))
-            order = np.argsort(scores)[::-1][:top_k_rec]
-            recs[u] = [cand_nodes[i] for i in order]
+            if _eps_t > 0.0 and _rng.random() < _eps_t:
+                perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
+                recs[u] = [cand_nodes[int(i)] for i in perm]
+            else:
+                order = np.argsort(scores)[::-1][:top_k_rec]
+                recs[u] = [cand_nodes[i] for i in order]
 
         feedback = env.step(recs, t)
 
@@ -280,25 +315,75 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             recall_rejected = [(u, v) for u, v in feedback.rejected
                                if u not in cold_start_users]
             pos_r, neg_r = replay.sample(replay_cfg.get("sample_n", 0))
-            if model_type == "mlp":
-                from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
-                pos_pairs = feedback.accepted + pos_r
-                neg_pairs = recall_rejected + neg_r
+            _use_oracle = trainer_cfg.get("oracle_labels", False)
+            if _use_oracle:
+                # Oracle 模式：用 G* 直接标注召回池中全部候选，消除假负例与选择偏差
+                _star_set = env.star_set
+                oracle_pos: list[tuple[int, int]] = []
+                oracle_neg: list[tuple[int, int]] = []
+                for _u in U:
+                    if _u in cold_start_users:
+                        continue
+                    for _v in user_cand_nodes.get(_u, []):
+                        if adj.has_edge(_u, _v) or _v == _u:
+                            continue
+                        if (_u, _v) in _star_set:
+                            oracle_pos.append((_u, _v))
+                        else:
+                            oracle_neg.append((_u, _v))
+                # 对负样本按 neg_ratio:1 随机下采样，防止批次爆炸
+                _neg_ratio = trainer_cfg.get("oracle_neg_ratio", 4)
+                _max_neg = max(len(oracle_pos) * _neg_ratio, 8)
+                if len(oracle_neg) > _max_neg:
+                    _idx = _rng.choice(len(oracle_neg), _max_neg, replace=False)
+                    oracle_neg = [oracle_neg[int(i)] for i in _idx]
+                train_pos: list[tuple[int, int]] = oracle_pos
+                train_neg: list[tuple[int, int]] = oracle_neg
+            else:
+                train_pos = feedback.accepted + pos_r
+                train_neg = recall_rejected + neg_r
+            if model_type == "node_emb":
                 train_result = {}
-                if pos_pairs and neg_pairs:
+                # 只用精排推荐过去被拒绝的作为负例，避免召回池中真实正样本造成假负例
+                eff_neg = train_neg
+                if train_pos and eff_neg:
+                    pos_u = torch.tensor([u for u, _ in train_pos], dtype=torch.long, device=device)
+                    pos_v = torch.tensor([v for _, v in train_pos], dtype=torch.long, device=device)
+                    neg_u = torch.tensor([u for u, _ in eff_neg], dtype=torch.long, device=device)
+                    neg_v = torch.tensor([v for _, v in eff_neg], dtype=torch.long, device=device)
+                    model.train()
+                    logits = torch.cat([model(pos_u, pos_v), model(neg_u, neg_v)])
+                    labels = torch.cat([
+                        torch.ones(len(train_pos), device=device),
+                        torch.zeros(len(eff_neg), device=device),
+                    ])
+                    loss = torch.nn.functional.binary_cross_entropy(logits, labels)
+                    optimizer.zero_grad()
+                    loss.backward()
+                    _gc = trainer_cfg.get("grad_clip", 1.0)
+                    if _gc > 0:
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), _gc)
+                    optimizer.step()
+                    if scheduler is not None:
+                        scheduler.step()
+                    train_result = {"loss": loss.item()}
+            elif model_type == "mlp":
+                from src.baseline.mlp_link import extract_topo_features  # noqa: PLC0415
+                train_result = {}
+                if train_pos and train_neg:
                     # 训练用 t 轮结束后的 adj（env.step 已加入新接受边）；仅边数变化时重算
                     if adj.num_edges() != _feat_edge_count:
                         feat = extract_topo_features(adj, n_nodes, node_feat, device)
-                    pos_u = torch.tensor([u for u, _ in pos_pairs], device=device)
-                    pos_v = torch.tensor([v for _, v in pos_pairs], device=device)
-                    neg_u = torch.tensor([u for u, _ in neg_pairs], device=device)
-                    neg_v = torch.tensor([v for _, v in neg_pairs], device=device)
+                    pos_u = torch.tensor([u for u, _ in train_pos], device=device)
+                    pos_v = torch.tensor([v for _, v in train_pos], device=device)
+                    neg_u = torch.tensor([u for u, _ in train_neg], device=device)
+                    neg_v = torch.tensor([v for _, v in train_neg], device=device)
                     logits_pos = model(feat[pos_u], feat[pos_v])
                     logits_neg = model(feat[neg_u], feat[neg_v])
                     logits = torch.cat([logits_pos, logits_neg])
                     labels = torch.cat([
-                        torch.ones(len(pos_pairs), device=device),
-                        torch.zeros(len(neg_pairs), device=device),
+                        torch.ones(len(train_pos), device=device),
+                        torch.zeros(len(train_neg), device=device),
                     ])
                     loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, labels)
                     optimizer.zero_grad()
@@ -306,11 +391,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                     optimizer.step()
                     train_result = {"loss": loss.item()}
             else:
-                train_result = trainer.update(
-                    feedback.accepted + pos_r,
-                    recall_rejected + neg_r,
-                    adj,
-                )
+                train_result = trainer.update(train_pos, train_neg, adj)
             replay.push(feedback.accepted, recall_rejected, t)
         else:
             train_result = {}

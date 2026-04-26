@@ -326,6 +326,7 @@ class OnlineTrainer:
         v_flag[v_abs] = True
         g.ndata["_u_flag"] = u_flag
         g.ndata["_v_flag"] = v_flag
+        g.ndata["_node_id"] = torch.from_numpy(nodes_flat.astype(np.int64))
 
         if self.node_feat is not None:
             nid_t = torch.from_numpy(nodes_flat.astype(np.int64))

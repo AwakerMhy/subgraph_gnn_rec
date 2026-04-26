@@ -142,3 +142,13 @@
 - **检测信号**：多个不同参数配置产出几乎相同的指标曲线
 - **解决方案**：修复模型崩溃问题（P0-1+P0-2）后重新运行消融实验
 - **复发次数**：1
+
+## [2026-04-26] stratified init floor 导致 init_ratio 消融失效
+
+- **类别**：思路错误（实验设计）
+- **现象**：bitcoin_alpha init=0.1 与 init=0.05 实验结果完全相同（coverage、mrr 曲线重合）
+- **根因**：stratified init 保证每个 source 节点至少一条出边（floor = n_unique_sources）；当 init_n < n_unique_sources 时，两个 ratio 都触发 floor，实际初始边数相同
+- **教训**：使用 stratified init 做 ratio 消融前，先确认 init_n > n_unique_sources；否则改用 random init strategy
+- **检测信号**：两个不同 init_ratio 的实验初始 coverage 完全相同
+- **解决方案**：bitcoin_alpha 消融改用 init=0.2（init_n > n_unique_sources），init=0.1 档数据废弃
+- **复发次数**：1

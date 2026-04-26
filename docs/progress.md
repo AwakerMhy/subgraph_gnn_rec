@@ -1,7 +1,7 @@
 # docs/progress.md — 历史变更日志
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-25
+> 最后更新：2026-04-27
 
 ---
 
@@ -103,3 +103,70 @@
 6. 核心瓶颈：distribution shift
    - GNN在图稀疏时（early）结构判别能力最强，随图变稠密训练分布漂移，优势收窄
    - 假设：更低的init_edge_ratio可延长稀疏阶段，对GNN更有利（待验证）
+
+[2026-04-26] [反馈参数调整：p_pos=0.95, p_neg=0.0] [configs/online/*.yaml(全部批量更新), scripts/gen_thr_grid_configs.py, DECISIONS.md] [完成]
+- 将 p_pos 从 0.8 提升至 0.95，p_neg 从 0.02 降至 0.0
+- 目的：消除假正例写入 G_t（p_neg=0.0），强化真实关系推荐信号（p_pos=0.95）
+- DECISIONS.md 标记旧决策 superseded，新增 [2026-04-26] ADR
+
+[2026-04-26] [PPR 补充召回：解决 coverage 停滞] [src/recall/ppr.py(+PPRNodesRecall), src/recall/registry.py(+ppr_nodes分支), configs/online/*_thr_*.yaml(27个，召回改为mixture)] [完成]
+- 问题：p_neg=0.0 下 G_t 增长缓慢，pure two_hop_random 2-hop 候选很快耗尽，coverage 停滞
+- 方案：MixtureRecall = two_hop_random(quota=70) + PPRNodesRecall(quota=30)
+  - PPRNodesRecall 继承 PPRRecall 但将所有候选分数置 0.0，保持对 ranker 的中立性（不泄露 PPR 排序信息）
+- 效果：college_msg cov_gain ~18%→~45%（对齐 random 水平），bitcoin_alpha 类似提升
+- 验证：大数据集（sx_askubuntu/sx_superuser/epinions）同步测试中
+
+[2026-04-26] [init_edge_ratio 消融：0.1 / 0.2] [configs/online/*_init1_*.yaml(6个新建), configs/online/*_init2_*.yaml(6个新建)] [完成，发现 bug]
+- college_msg init=0.1/0.2 均有效区分，init=0.2 覆盖更多初始边，GNN 早期优势更明显
+- **Bug**：bitcoin_alpha init=0.1 与 init=0.05 结果完全相同（stratified init 有 floor=n_unique_sources 限制，init_n < n_unique_sources 时两者等价）
+- 结论：bitcoin_alpha 需用 init=0.2 才能进行有效消融；init=0.1 档在 bitcoin_alpha 上数据无效
+
+[2026-04-26] [hidden_dim 消融：h16 / h32 / h64（init=0.2 base）] [configs/online/*_init2_gnn_h{16,32,64}.yaml(6个新建)] [完成]
+- college_msg: h64 mrr3_mean=0.320 > h32=0.310 > h16=0.295，mrr 随 hidden_dim 单调提升
+- bitcoin_alpha: h64 mrr3_mean=0.369 > h32=0.341 > h16=0.312，趋势一致
+- **负效应**：h64 的 cov_gain 反而最低（college_msg 17.7%），大模型倾向集中推荐高分节点，探索不足
+- Random 在 mrr3_mean 上仍领先所有 GNN 配置（college_msg 0.407，bitcoin_alpha 0.417）
+- 假设：问题来自 cyclic LR 的周期性重置破坏已学知识，或学习率绝对值不当
+
+[2026-04-26] [LR 消融启动：cyclic schedule, lr ∈ {0.0001, 0.0005, 0.001, 0.005} × {college_msg, bitcoin_alpha}] [configs/online/*_init2_gnn_h64_lr*.yaml(6个新建，0.001已有baseline)] [进行中]
+- college_msg lr=0.0001(cyclic) 已完成：mrr3_mean=0.324（vs baseline 0.001→0.320），cov_gain=31.9%（vs 17.7%）
+- 低 lr 缩小了与 Random 的 cov_gain 差距，但 mrr 仍低于 Random(0.407)
+- 其余 5 个配置待运行
+
+[2026-04-26] [constant LR schedule 对比实验启动] [configs/online/*_init2_gnn_h64_const_lr*.yaml(8个新建)] [待运行]
+- 假设：cyclic schedule 的周期性重置（每 25 轮 lr 从 base 跌至 min_lr=1e-5 再重置）破坏已学排序偏好，constant schedule 更稳定
+- 覆盖 lr ∈ {0.0001, 0.0005, 0.001, 0.005} × {college_msg, bitcoin_alpha}，与 cyclic 形成完整对比矩阵
+
+[2026-04-26] [constant LR + LR 消融结果] [results/online/college_msg_init2_gnn_h64_const_lr*.yaml] [完成]
+- constant schedule 整体优于 cyclic（college_msg: const lr=0.001 → mrr3=0.335 vs cyclic→0.320）
+- 最优 cyclic：lr=0.0001(mrr=0.324)；最优 constant：lr=0.001(mrr=0.335)
+- GNN 在所有 LR/schedule 配置下仍弱于 Random(0.407)，根因未解决
+
+[2026-04-26] [假负例根因实验：p_pos 1.0 + top_k sweep] [configs/online/*_ppos1.yaml, *_topk*.yaml] [完成，重大发现]
+- **p_pos=1.0（消除假负例）**：college_msg mrr3 0.335→0.422，首次超越 Random(0.407)
+- **top_k 增大（p_pos=0.95）**：mrr 急剧下降（topk10→0.177，topk20→0.150）——top_k 越大假负例越多
+- 结论：假负例是 college_msg GNN 弱于 Random 的主因；top_k 不是解法
+
+[2026-04-26] [college_msg top_k × ppos=1.0 完整 tradeoff 曲线] [configs/online/college_msg_init2_gnn_h64_topk*_ppos1.yaml] [完成]
+- top_k=3: mrr=0.665(+63% vs Random), cov=17.8%
+- top_k=5: mrr=0.422(+4%), cov=24.3%
+- top_k=10: mrr=0.239, cov=29.7%
+- top_k=20: mrr=0.128≈Random, cov=44.7%≈Random
+- 最优配置：topk=3 + ppos=1.0，mrr 远超 Random，代价是 coverage 低
+
+[2026-04-26] [recall 精度诊断 + 跨数据集系统性实验] [configs/online/{email_eu,dnc_email}_init2_*.yaml] [完成]
+- recall_prec: college_msg 3.0%, bitcoin_alpha 2.0%, dnc_email 2.9%, email_eu 17.9%
+- email_eu recall_prec=17.9%：random 探索即可覆盖100% G*，GNN 加不了值（任务退化）
+- dnc_email：GNN ppos1 mrr=0.435 > Random 0.397（+9.5%）✓
+- bitcoin_alpha：MLP ppos1≈MLP ppos0.95（0.344 vs 0.345），消除假负例无效 → 结构不匹配
+
+[2026-04-26] [三类失效模式完整识别] [docs/progress.md, DECISIONS.md] [完成]
+- 类型1 假负例毒害（college_msg）→ ppos=1.0 修复
+- 类型2 结构不匹配（bitcoin_alpha）→ 2-hop子图对trust网络无效，GNN/MLP同等失败
+- 类型3 任务退化（email_eu）→ recall 精度过高，random已是最优
+
+[2026-04-27] [GNN + 节点嵌入混合模型] [src/model/model.py, src/online/trainer.py, src/online/loop.py, configs/online/_smoke_gnn_node_emb.yaml(+新建)] [完成]
+- LinkPredModel 新增 n_nodes / node_emb_dim 参数；node_emb_dim>0 时创建 nn.Embedding，将 emb(u)‖emb(v) concat 到 GIN 图嵌入后再送 Scorer
+- trainer._build_flat_batched_graph 写入 g.ndata["_node_id"]（全局节点 ID），供模型 embedding lookup
+- loop.py 透传 n_nodes / node_emb_dim；node_emb_dim=0 时完全向后兼容
+- smoke test（college_msg, 5 轮, CPU）通过，loss 正常收敛
