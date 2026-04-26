@@ -12,7 +12,6 @@ import pandas as pd
 
 from src.online.feedback import Feedback
 from src.online.static_adj import StaticAdjacency
-from src.utils.metrics import compute_hits_at_k, compute_mrr, compute_ndcg_at_k
 
 
 class RoundMetrics:

@@ -38,7 +38,8 @@ class FeedbackSimulator:
                 stacklevel=2,
             )
         self._star = star_edge_set
-        self._p_pos = p_accept if p_accept is not None else p_pos
+        # p_pos 优先；仅当 p_pos 未显式传入（仍为默认值 1.0）且 p_accept 存在时才用 p_accept
+        self._p_pos = p_pos if p_pos != 1.0 or p_accept is None else p_accept
         self._p_neg = p_neg
         self._rng = rng or np.random.default_rng(42)
 

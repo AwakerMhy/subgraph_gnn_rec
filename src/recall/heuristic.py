@@ -86,10 +86,16 @@ class CommonNeighborsRecall(RecallBase):
         self._n_nodes = n_nodes
         self._A = _build_sparse_adj(time_adj, n_nodes)   # scipy CSR or None
         self._cache: dict[int, np.ndarray] = {}           # user → CN scores (float32, shape n)
+        self._last_n_edges: int = -1
 
     # ── 图更新 ────────────────────────────────────────────────────────────────
 
     def update_graph(self, round_idx: int) -> None:  # noqa: ARG002
+        cur_edges = self._time_adj.num_edges()
+        if cur_edges == self._last_n_edges:
+            self._cache.clear()
+            return
+        self._last_n_edges = cur_edges
         self._cache.clear()
         self._A = _build_sparse_adj(self._time_adj, self._n_nodes)
 
@@ -200,8 +206,14 @@ class AdamicAdarRecall(RecallBase):
         self._n_nodes = n_nodes
         self._A = _build_sparse_adj(time_adj, n_nodes)
         self._cache: dict[int, np.ndarray] = {}
+        self._last_n_edges: int = -1
 
     def update_graph(self, round_idx: int) -> None:  # noqa: ARG002
+        cur_edges = self._time_adj.num_edges()
+        if cur_edges == self._last_n_edges:
+            self._cache.clear()
+            return
+        self._last_n_edges = cur_edges
         self._cache.clear()
         self._A = _build_sparse_adj(self._time_adj, self._n_nodes)
 

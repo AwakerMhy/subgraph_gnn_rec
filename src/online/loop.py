@@ -80,7 +80,15 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
     seed = cfg.get("runtime", {}).get("seed", 42)
     set_seed(seed)
     device_str = cfg.get("runtime", {}).get("device", "cpu")
-    device = torch.device(device_str if torch.cuda.is_available() or device_str == "cpu" else "cpu")
+    if device_str.startswith("cuda") and not torch.cuda.is_available():
+        import warnings as _warnings
+        _warnings.warn(
+            f"config 指定 device={device_str!r}，但当前环境无 CUDA，已自动 fallback 到 CPU。",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+        device_str = "cpu"
+    device = torch.device(device_str)
     out_dir = Path(cfg.get("runtime", {}).get("out_dir", "results/online"))
     out_dir.mkdir(parents=True, exist_ok=True)
     log_every = cfg.get("runtime", {}).get("log_every", 1)

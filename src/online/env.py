@@ -162,7 +162,7 @@ class OnlineEnv:
                 if node in burned or len(visited_edges) >= init_n:
                     return
                 burned.add(node)
-                nbrs = adj_map.get(node, [])
+                nbrs = list(adj_map.get(node, []))
                 self._rng.shuffle(nbrs)
                 k = max(1, int(np.ceil(self._rng.geometric(p=1 - p_fire + 1e-6) - 1)))
                 for v in nbrs[:k]:
