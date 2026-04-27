@@ -1,0 +1,14 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 21, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 131, in run_online_simulation
+    star_edges, n_nodes, node_feat = _load_dataset(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 75, in _load_dataset
+    return _drop_isolated_nodes(edges_df, n_nodes, None)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 29, in _drop_isolated_nodes
+    active = sorted(set(edges_df["src"].tolist()) | set(edges_df["dst"].tolist()))
+MemoryError

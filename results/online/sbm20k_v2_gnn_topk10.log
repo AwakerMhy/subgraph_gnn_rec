@@ -1,0 +1,35 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py", line 125, in _load_lib
+    self._lib_handle = ctypes.CDLL(str(lib_path))
+  File "C:\conda\envs\gnn\lib\ctypes\__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: [WinError 1455] 页面文件太小，无法完成操作。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 12, in <module>
+    from src.online.loop import run_online_simulation
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 18, in <module>
+    from src.online.trainer import OnlineTrainer
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\trainer.py", line 20, in <module>
+    from numba import njit, prange
+  File "C:\conda\envs\gnn\lib\site-packages\numba\__init__.py", line 73, in <module>
+    from numba.core import config
+  File "C:\conda\envs\gnn\lib\site-packages\numba\core\config.py", line 17, in <module>
+    import llvmlite.binding as ll
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\__init__.py", line 4, in <module>
+    from .dylib import *
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\dylib.py", line 36, in <module>
+    ffi.lib.LLVMPY_AddSymbol.argtypes = [
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py", line 159, in __getattr__
+    cfn = getattr(self._lib, name)
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py", line 150, in _lib
+    self._load_lib()
+  File "C:\conda\envs\gnn\lib\site-packages\llvmlite\binding\ffi.py", line 137, in _load_lib
+    raise OSError(msg)
+OSError: Could not find/load shared object file 'llvmlite.dll' from resource location: 'llvmlite.binding'. This could mean that the library literally cannot be found, but may also mean that the permissions are incorrect or that a dependency of/a symbol in the library could not be resolved.

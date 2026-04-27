@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 12, in <module>
+    from src.online.loop import run_online_simulation
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 8, in <module>
+    import dgl  # noqa: F401 — 先于 numpy/torch 导入，触发 Windows DLL 目录注册
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\__init__.py", line 14, in <module>
+    from .backend import backend_name, load_backend  # usort: skip
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 122, in <module>
+    load_backend(get_preferred_backend())
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 37, in load_backend
+    import torch
+  File "C:\conda\envs\gnn\lib\site-packages\torch\__init__.py", line 285, in <module>
+    _load_dll_libraries()
+  File "C:\conda\envs\gnn\lib\site-packages\torch\__init__.py", line 268, in _load_dll_libraries
+    raise err
+OSError: [WinError 1455] 页面文件太小，无法完成操作。 Error loading "C:\conda\envs\gnn\lib\site-packages\torch\lib\caffe2_nvrtc.dll" or one of its dependencies.

@@ -45,10 +45,14 @@ gnn/
 │   │   │   ├── sx_askubuntu.py
 │   │   │   ├── sx_superuser.py
 │   │   │   ├── gowalla.py     # ← 新（Step 7）
-│   │   │   └── epinions.py    # ← 新（Step 7）
+│   │   │   ├── epinions.py    # ← 新（Step 7）
+│   │   │   ├── wiki_vote.py   # Wikipedia 投票网络（7115 节点，103689 边，recip=0.056）
+│   │   │   ├── slashdot.py    # Slashdot Zoo friend/foe（77350 节点，516575 边，recip=0.186）
+│   │   │   └── email_euall.py # Email-EuAll 欧洲邮件网络（265009 节点，418956 边，recip=0.260）
 │   │   └── synthetic/
 │   │       ├── generator_base.py
-│   │       ├── sbm.py
+│   │       ├── sbm.py        # 标准 SBM：均匀活跃度 + 共同邻居加成
+│   │       ├── dcsbm.py      # DC-SBM：θ_out/θ_in Pareto 幂律度分布
 │   │       ├── hawkes.py
 │   │       └── triadic.py
 │   │

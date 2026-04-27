@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 12, in <module>
+    from src.online.loop import run_online_simulation
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 8, in <module>
+    import dgl  # noqa: F401 — 先于 numpy/torch 导入，触发 Windows DLL 目录注册
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\__init__.py", line 14, in <module>
+    from .backend import backend_name, load_backend  # usort: skip
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 122, in <module>
+    load_backend(get_preferred_backend())
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 51, in load_backend
+    from .._ffi.base import load_tensor_adapter  # imports DGL C library
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\_ffi\base.py", line 50, in <module>
+    _LIB, _LIB_NAME, _DIR_NAME = _load_lib()
+  File "C:\conda\envs\gnn\lib\site-packages\dgl\_ffi\base.py", line 39, in _load_lib
+    lib = ctypes.CDLL(lib_path[0])
+  File "C:\conda\envs\gnn\lib\ctypes\__init__.py", line 374, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: [WinError 1455] 页面文件太小，无法完成操作。

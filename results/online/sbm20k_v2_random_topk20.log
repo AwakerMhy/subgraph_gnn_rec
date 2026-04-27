@@ -1,0 +1,23 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 21, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 131, in run_online_simulation
+    star_edges, n_nodes, node_feat = _load_dataset(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 56, in _load_dataset
+    edges_df = gen.generate()
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\dataset\synthetic\sbm.py", line 100, in generate
+    df = pd.DataFrame(self._edges, columns=["src", "dst", "timestamp"])
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\frame.py", line 855, in __init__
+    arrays, columns, index = nested_data_to_arrays(
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 520, in nested_data_to_arrays
+    arrays, columns = to_arrays(data, columns, dtype=dtype)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 835, in to_arrays
+    arr = _list_to_arrays(data)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 853, in _list_to_arrays
+    content = lib.to_object_array_tuples(data)
+  File "pandas/_libs/lib.pyx", line 3101, in pandas._libs.lib.to_object_array_tuples
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 464. KiB for an array with shape (19812, 3) and data type object

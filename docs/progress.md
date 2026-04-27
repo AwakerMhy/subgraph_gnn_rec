@@ -3,6 +3,19 @@
 > 创建时间：2026-04-08 15:30
 > 最后更新：2026-04-27
 
+[2026-04-27 15:00] [新增 wiki_vote / slashdot 数据集 loader 及预处理] [src/dataset/real/wiki_vote.py(+新建), src/dataset/real/slashdot.py(+新建), data/processed/wiki_vote/, data/processed/slashdot/, BLUEPRINT.md] [完成]
+- Enron (recip=1.000) 排除，不满足有向稀疏条件
+- wiki-Vote: 7115 节点, 103689 边, recip=0.056, deg_mean=17.0；行序号作代理时间
+- Slashdot: 77350 节点, 516575 边, recip=0.186, deg_mean=11.9；sign 列丢弃，行序号作代理时间
+
+[2026-04-27 15:30] [新增 email_euall 数据集 loader 及预处理] [src/dataset/real/email_euall.py(+新建), data/processed/email_euall/, BLUEPRINT.md] [完成]
+- email-EuAll: 265009 节点, 418956 边, recip=0.260, deg_mean=1.9；行序号作代理时间
+
+[2026-04-27 16:00] [更新 docs/datasets.md：补充全部数据集 recip/deg_mean 字段，新增 wiki_vote/slashdot/email_euall 条目] [docs/datasets.md] [完成]
+[2026-04-27 16:30] [新增 DC-SBM 合成数据集生成器] [src/dataset/synthetic/dcsbm.py(+新建), BLUEPRINT.md] [完成]
+- P(i→j) ∝ θ_out[i]·θ_in[j]·B[c_i,c_j]，θ 服从 Pareto(α) 产生幂律度分布
+- 节点特征：社区 one-hot + log(θ_out) + log(θ_in)，共 n_communities+2 维
+
 ---
 
 [2026-04-15] [节点属性 concat：GIN/GraphSAGE/SEAL 加 AttrEncoder] [src/model/encoder_attr.py(+新建), src/model/model.py(+node_feat_dim+attr_encoder), src/baseline/graphsage.py(+node_feat_dim+attr_encoder), src/baseline/seal.py(+node_feat_dim+attr_encoder), src/graph/subgraph.py(+node_feat参数), src/train.py(+加载nodes.csv+传node_feat)] [完成]
@@ -170,3 +183,47 @@
 - trainer._build_flat_batched_graph 写入 g.ndata["_node_id"]（全局节点 ID），供模型 embedding lookup
 - loop.py 透传 n_nodes / node_emb_dim；node_emb_dim=0 时完全向后兼容
 - smoke test（college_msg, 5 轮, CPU）通过，loss 正常收敛
+
+[2026-04-27] [SBM合成图四方法对比实验（n=500, topk=10/20）] [configs/online/sbm_random_topk{10,20}.yaml, sbm_gnn_topk{10,20}.yaml, sbm_node_emb_topk{10,20}.yaml, sbm_gnn_node_emb_topk{10,20}.yaml, results/online/sbm_*/rounds.csv] [完成]
+- 数据集：SBM合成图 n_nodes=500, n_communities=5, p_in=0.3, p_out=0.05, T=500, edges_per_step=15, seed=42（约462有效节点）
+- 结果汇总（峰值覆盖率 / MRR@5活跃均值 / 总接受边）：
+  random    topk10: cov=0.3907 / mrr=0.645 / accepted=183 / active_rounds=37
+  random    topk20: cov=0.2953 / mrr=0.551 / accepted=132 / active_rounds=23
+  node_emb  topk10: cov=0.1944 / mrr=0.573 / accepted=78  / active_rounds=13
+  node_emb  topk20: cov=0.2991 / mrr=0.708 / accepted=134 / active_rounds=12
+  gnn       topk10: cov=0.3850 / mrr=0.767 / accepted=180 / active_rounds=26
+  gnn       topk20: cov=0.2953 / mrr=0.435 / accepted=132 / active_rounds=19
+  gnn+emb   topk10: cov=0.4206 / mrr=0.764 / accepted=199 / active_rounds=27  ← 峰值覆盖最高
+  gnn+emb   topk20: cov=0.1533 / mrr=0.316 / accepted=56  / active_rounds=19
+- 关键发现：n=500图太小，约第30~40轮后全部模型n_accepted降为0（图饱和）；topk=20普遍弱于topk=10；结论可信度不足，需用n_nodes≥5000重跑
+
+[2026-04-27] [SBM合成图四方法对比实验v2（n=5000, two_hop_random召回, p_pos=1.0）] [configs/online/sbm5k_v2_*.yaml, results/online/sbm5k_v2_*/rounds.csv] [完成]
+- 数据集：SBM n_nodes=5000, n_communities=5, p_in=0.3, p_out=0.05, T=2000, edges_per_step=30, seed=42
+- 配置变更（相比v1）：p_pos=1.0（之前0.95），召回改为纯 two_hop_random top_k_recall=100（之前mixture+ppr_nodes）
+- 结果汇总（峰值覆盖 / MRR@5活跃均值 / Hits@5 / 接受边 / 活跃轮数）：
+  random       topk10: cov=0.2659 / mrr=0.940 / hits=0.965 / acc=982  / active=100
+  random       topk20: cov=0.4348 / mrr=0.854 / hits=0.888 / acc=1750 / active=94
+  node_emb     topk10: cov=0.2595 / mrr=0.958 / hits=0.985 / acc=953  / active=100
+  node_emb     topk20: cov=0.0710 / mrr=0.516 / hits=0.547 / acc=96   / active=32   ← 崩溃
+  gnn          topk10: cov=0.2633 / mrr=0.980 / hits=0.985 / acc=970  / active=100
+  gnn          topk20: cov=0.4750 / mrr=0.913 / hits=0.930 / acc=1933 / active=100  ← 覆盖最高
+  gnn+node_emb topk10: cov=0.1781 / mrr=0.992 / hits=0.992 / acc=583  / active=61
+  gnn+node_emb topk20: cov=0.3004 / mrr=0.746 / hits=0.779 / acc=1139 / active=70
+- 关键发现：
+  1. gnn topk=20 覆盖最高(0.475)且跑满100轮，综合最强
+  2. node_emb topk=20 在纯2-hop召回下冷启动失败，去掉PPR后弱点更暴露
+  3. gnn+node_emb 弱于纯gnn，混合模型稀疏冷启动有负向干扰
+  4. 去掉PPR后gnn topk=20覆盖从0.449→0.475，召回更纯净有利于gnn排序发挥
+
+[2026-04-27] [分析：random/node_emb/gnn 互补性] [无代码变更] [分析记录]
+- 三种方法的优势区域不同：
+  random：冷启动鲁棒、探索最广，无排序能力
+  node_emb：全局节点亲和力，图稠密后稳定，冷启动嵌入未收敛
+  gnn：局部结构精准，图成熟后最强，冷启动子图稀疏时失效
+- 互补证据：
+  bitcoin上 gnn+node_emb MRR(0.677) > gnn(0.530) 且 > node_emb(0.608)
+  SBM上 node_emb topk=20 仅活跃32轮崩溃，random/gnn跑满100轮，失败模式不同
+  epinions上四种方法MRR均>0.90，图够大时互补性消失
+- 主要互补形式：时序互补（冷启动用random/node_emb兜底→图成熟后切gnn主导），
+  而非简单混合推荐列表（会稀释精度）
+- 潜在方向：动态切换策略，按图密度或轮次自动调整主推模型

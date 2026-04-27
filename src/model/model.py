@@ -128,14 +128,14 @@ class LinkPredModel(nn.Module):
         Returns:
             scores: (B,) tensor ∈ (0, 1)
         """
-        if self.encoder_type == "last":
-            n = bg.num_nodes()
-            feat = torch.zeros(n, 2, dtype=torch.float32, device=bg.device)
-            u_mask = bg.ndata["_u_flag"]
-            v_mask = bg.ndata["_v_flag"]
-            feat[u_mask, 0] = 1.0
-            feat[v_mask, 1] = 1.0
+        n = bg.num_nodes()
+        feat = torch.zeros(n, 2, dtype=torch.float32, device=bg.device)
+        u_mask = bg.ndata["_u_flag"]   # (N,) bool
+        v_mask = bg.ndata["_v_flag"]   # (N,) bool
+        feat[u_mask, 0] = 1.0
+        feat[v_mask, 1] = 1.0
 
+        if self.encoder_type == "last":
             h = feat
             for conv in self.encoder.layers:
                 h = conv(bg, h)
@@ -145,30 +145,45 @@ class LinkPredModel(nn.Module):
             h_graphs = dgl.mean_nodes(bg, "_h")  # (B, hidden_dim)
             bg.ndata.pop("_h")
 
-            if self.attr_encoder is not None:
-                u_feat = bg.ndata["node_feat"][u_mask]   # (B, feat_dim)
-                v_feat = bg.ndata["node_feat"][v_mask]   # (B, feat_dim)
-                h_attr = self.attr_encoder(u_feat, v_feat)  # (B, hidden_dim)
-                h_graphs = torch.cat([h_graphs, h_attr], dim=-1)
+        else:  # layer_concat / layer_sum — fully batched，无 Python 循环
+            # 预计算每图 other 节点数：n_nodes - 1(u) - 1(v)
+            n_nodes = bg.batch_num_nodes()                               # (B,)
+            n_other = (n_nodes - 2).clamp(min=1).float().unsqueeze(1)   # (B, 1)
+            has_other = (n_nodes > 2).float().unsqueeze(1)               # (B, 1)
 
-            if self.node_emb is not None:
-                node_ids = bg.ndata["_node_id"]
-                u_ids = node_ids[u_mask]   # (B,)
-                v_ids = node_ids[v_mask]   # (B,)
-                h_node = torch.cat([self.node_emb(u_ids), self.node_emb(v_ids)], dim=-1)  # (B, emb_dim*2)
-                h_graphs = torch.cat([h_graphs, h_node], dim=-1)
+            h = feat
+            layer_parts: list[torch.Tensor] = []
+            for conv in self.encoder.layers:
+                h = conv(bg, h)
+                h = torch.relu(h)
 
-            return self.scorer(h_graphs)          # (B,)
+                h_u = h[u_mask]   # (B, H) — 每图恰好一个 u
+                h_v = h[v_mask]   # (B, H) — 每图恰好一个 v
 
-        else:  # layer_concat：unbatch 后逐图编码
-            graphs = dgl.unbatch(bg)
-            embeddings: list[torch.Tensor] = []
-            for g in graphs:
-                feat = self._assign_node_features(g)
-                u_mask = g.ndata["_u_flag"]
-                v_mask = g.ndata["_v_flag"]
-                h_graph = self.encoder(g, feat, u_mask, v_mask)
-                h_graph = self._concat_attr(h_graph, g)
-                embeddings.append(h_graph)
-            h_graphs = torch.stack(embeddings)    # (B, out_dim)
-            return self.scorer(h_graphs)          # (B,)
+                # other 均值 = (sum_all - h_u - h_v) / n_other
+                bg.ndata["_htmp"] = h
+                h_sum = dgl.sum_nodes(bg, "_htmp")          # (B, H)
+                bg.ndata.pop("_htmp")
+                h_other = (h_sum - h_u - h_v) / n_other * has_other  # (B, H)
+
+                layer_parts.append(torch.cat([h_u, h_v, h_other], dim=-1))  # (B, 3H)
+
+            if self.encoder_type == "layer_concat":
+                h_graphs = torch.cat(layer_parts, dim=-1)          # (B, L*3H)
+            else:  # layer_sum
+                h_graphs = torch.stack(layer_parts).sum(0)         # (B, 3H)
+
+        if self.attr_encoder is not None:
+            u_feat = bg.ndata["node_feat"][u_mask]
+            v_feat = bg.ndata["node_feat"][v_mask]
+            h_attr = self.attr_encoder(u_feat, v_feat)
+            h_graphs = torch.cat([h_graphs, h_attr], dim=-1)
+
+        if self.node_emb is not None:
+            node_ids = bg.ndata["_node_id"]
+            u_ids = node_ids[u_mask]
+            v_ids = node_ids[v_mask]
+            h_node = torch.cat([self.node_emb(u_ids), self.node_emb(v_ids)], dim=-1)
+            h_graphs = torch.cat([h_graphs, h_node], dim=-1)
+
+        return self.scorer(h_graphs)  # (B,)

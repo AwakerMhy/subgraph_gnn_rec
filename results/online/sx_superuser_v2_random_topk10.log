@@ -1,0 +1,32 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 21, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 131, in run_online_simulation
+    star_edges, n_nodes, node_feat = _load_dataset(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 72, in _load_dataset
+    edges_df = pd.read_csv(path)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 626, in _read
+    return parser.read(nrows)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1968, in read
+    df = DataFrame(
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\frame.py", line 782, in __init__
+    mgr = dict_to_mgr(data, index, columns, dtype=dtype, copy=copy, typ=manager)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 503, in dict_to_mgr
+    return arrays_to_mgr(arrays, columns, index, dtype=dtype, typ=typ, consolidate=copy)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 152, in arrays_to_mgr
+    return create_block_manager_from_column_arrays(
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\managers.py", line 2163, in create_block_manager_from_column_arrays
+    mgr._consolidate_inplace()
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\managers.py", line 1807, in _consolidate_inplace
+    self.blocks = _consolidate(self.blocks)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\managers.py", line 2288, in _consolidate
+    merged_blocks, _ = _merge_blocks(
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\managers.py", line 2320, in _merge_blocks
+    new_values = new_values[argsort]
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 25.4 MiB for an array with shape (3, 1108739) and data type int64

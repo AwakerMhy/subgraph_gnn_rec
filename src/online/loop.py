@@ -75,6 +75,40 @@ def _load_dataset(cfg: dict) -> tuple[pd.DataFrame, int, "torch.Tensor | None"]:
     return _drop_isolated_nodes(edges_df, n_nodes, None)
 
 
+_HEURISTIC_TYPES: frozenset[str] = frozenset({"cn", "aa", "jaccard", "pa"})
+
+
+def _score_heuristic(
+    method: str,
+    u: int,
+    cands: list[int],
+    adj: "StaticAdjacency",
+) -> list[float]:
+    """为候选列表打启发式分数（无向邻居集合）。"""
+    nu = adj.out_neighbors_set(u) | adj.in_neighbors_set(u)
+    nu_size = len(nu)
+    scores: list[float] = []
+    for v in cands:
+        nv = adj.out_neighbors_set(v) | adj.in_neighbors_set(v)
+        if method == "pa":
+            scores.append(float(nu_size * len(nv)))
+            continue
+        common = nu & nv
+        cn = len(common)
+        if method == "cn":
+            scores.append(float(cn))
+        elif method == "aa":
+            aa_score = 0.0
+            for w in common:
+                dw = len(adj.out_neighbors_set(w) | adj.in_neighbors_set(w))
+                aa_score += 1.0 / np.log(max(dw, 2))
+            scores.append(aa_score)
+        else:  # jaccard
+            union_size = len(nu | nv)
+            scores.append(float(cn) / union_size if union_size > 0 else 0.0)
+    return scores
+
+
 def run_online_simulation(cfg: dict) -> pd.DataFrame:
     """执行在线学习仿真，返回 per-round 指标 DataFrame。"""
     seed = cfg.get("runtime", {}).get("seed", 42)
@@ -181,6 +215,11 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             cycle_steps=sched_cfg.get("cycle_rounds", 25),
         )
         trainer = None
+    elif model_type in _HEURISTIC_TYPES:
+        model = None
+        optimizer = None
+        trainer = None
+        scheduler = None
     else:
         model = LinkPredModel(
             hidden_dim=model_cfg.get("hidden_dim", 64),
@@ -280,6 +319,11 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             # 打分用 t 轮开始时的 adj（env.step 之前）
             feat = extract_topo_features(adj, n_nodes, node_feat, device)
             _feat_edge_count = adj.num_edges()  # 记录当前边数，训练时按需重算
+        elif model_type in _HEURISTIC_TYPES:
+            heuristic_scores: dict[int, list[float]] = {
+                u: _score_heuristic(model_type, u, user_cand_nodes[u], adj)
+                for u in U if user_cand_nodes[u]
+            }
 
         # ── Phase 3：构建推荐（top-K 精排） ─────────────────────────────────
         # ε-greedy：线性衰减，round 0 时 ε=epsilon_start，末轮时 ε=epsilon_end
@@ -305,6 +349,8 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 v_feat = feat[cand_nodes]
                 with torch.no_grad():
                     scores = model(u_feat, v_feat).cpu().numpy()
+            elif model_type in _HEURISTIC_TYPES:
+                scores = heuristic_scores.get(u, [0.0] * len(cand_nodes))
             else:
                 scores = gnn_score_map.get(u, [0.0] * len(cand_nodes))
             if _eps_t > 0.0 and _rng.random() < _eps_t:
@@ -317,7 +363,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         feedback = env.step(recs, t)
 
         # 在线更新：冷启动用户的 rejected 不参与训练（随机负样本信噪比低）
-        if model_type == "random":
+        if model_type == "random" or model_type in _HEURISTIC_TYPES:
             train_result = {}
         elif t % update_every == 0:
             recall_rejected = [(u, v) for u, v in feedback.rejected
