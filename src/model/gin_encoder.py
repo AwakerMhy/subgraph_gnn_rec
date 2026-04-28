@@ -39,7 +39,7 @@ class GINEncoder(nn.Module):
         for i in range(num_layers):
             mlp = nn.Sequential(
                 nn.Linear(dims[i], hidden_dim),
-                nn.ReLU(),
+                nn.Tanh(),
                 nn.Linear(hidden_dim, hidden_dim),
             )
             self.layers.append(dglnn.GINConv(mlp, aggregator_type="sum"))
@@ -56,7 +56,7 @@ class GINEncoder(nn.Module):
         h = feat
         for conv in self.layers:
             h = conv(g, h)
-            h = torch.relu(h)
+            h = torch.tanh(h)
 
         # graph-level readout
         g.ndata["_h"] = h
@@ -92,7 +92,7 @@ class GINEncoderLayerConcat(nn.Module):
         for i in range(num_layers):
             mlp = nn.Sequential(
                 nn.Linear(dims[i], hidden_dim),
-                nn.ReLU(),
+                nn.Tanh(),
                 nn.Linear(hidden_dim, hidden_dim),
             )
             self.layers.append(dglnn.GINConv(mlp, aggregator_type="sum"))
@@ -125,7 +125,7 @@ class GINEncoderLayerConcat(nn.Module):
 
         for conv in self.layers:
             h = conv(g, h)
-            h = torch.relu(h)
+            h = torch.tanh(h)
 
             h_u = h[u_mask].mean(0)      # (hidden_dim,)
             h_v = h[v_mask].mean(0)      # (hidden_dim,)
@@ -166,7 +166,7 @@ class GINEncoderLayerSum(nn.Module):
         for i in range(num_layers):
             mlp = nn.Sequential(
                 nn.Linear(dims[i], hidden_dim),
-                nn.ReLU(),
+                nn.Tanh(),
                 nn.Linear(hidden_dim, hidden_dim),
             )
             self.layers.append(dglnn.GINConv(mlp, aggregator_type="sum"))
@@ -199,7 +199,7 @@ class GINEncoderLayerSum(nn.Module):
 
         for conv in self.layers:
             h = conv(g, h)
-            h = torch.relu(h)
+            h = torch.tanh(h)
 
             h_u = h[u_mask].mean(0)      # (hidden_dim,)
             h_v = h[v_mask].mean(0)      # (hidden_dim,)

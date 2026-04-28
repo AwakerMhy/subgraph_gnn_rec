@@ -1,0 +1,16 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/500  coverage=0.2539  prec@K=0.0340  accepted=96  loss=0.6587  (0.7s)
+Round   51/500  coverage=0.3067  prec@K=0.0033  accepted=10  loss=0.4576  (0.6s)
+Round  101/500  coverage=0.3159  prec@K=0.0010  accepted=3  loss=0.0827  (0.7s)
+Round  151/500  coverage=0.3198  prec@K=0.0000  accepted=0  loss=0.0080  (0.7s)
+Round  201/500  coverage=0.3213  prec@K=0.0000  accepted=0  loss=0.0030  (0.7s)
+Round  251/500  coverage=0.3216  prec@K=0.0000  accepted=0  loss=0.0019  (0.7s)
+Round  301/500  coverage=0.3220  prec@K=0.0000  accepted=0  loss=0.0013  (0.6s)
+Round  351/500  coverage=0.3222  prec@K=0.0000  accepted=0  loss=0.0011  (0.7s)
+Round  401/500  coverage=0.3227  prec@K=0.0003  accepted=1  loss=0.0070  (0.6s)
+Round  451/500  coverage=0.3230  prec@K=0.0000  accepted=0  loss=0.0010  (0.6s)
+
+结果已写入 results\online\algo_sweep\bitcoin_alpha_gnn_concat/rounds.csv

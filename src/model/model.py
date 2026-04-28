@@ -139,7 +139,7 @@ class LinkPredModel(nn.Module):
             h = feat
             for conv in self.encoder.layers:
                 h = conv(bg, h)
-                h = torch.relu(h)
+                h = torch.tanh(h)
 
             bg.ndata["_h"] = h
             h_graphs = dgl.mean_nodes(bg, "_h")  # (B, hidden_dim)
@@ -155,7 +155,7 @@ class LinkPredModel(nn.Module):
             layer_parts: list[torch.Tensor] = []
             for conv in self.encoder.layers:
                 h = conv(bg, h)
-                h = torch.relu(h)
+                h = torch.tanh(h)
 
                 h_u = h[u_mask]   # (B, H) — 每图恰好一个 u
                 h_v = h[v_mask]   # (B, H) — 每图恰好一个 v

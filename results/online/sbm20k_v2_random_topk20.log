@@ -2,22 +2,68 @@ C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyW
   warnings.warn(
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
-Traceback (most recent call last):
-  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 21, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 131, in run_online_simulation
-    star_edges, n_nodes, node_feat = _load_dataset(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 56, in _load_dataset
-    edges_df = gen.generate()
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\dataset\synthetic\sbm.py", line 100, in generate
-    df = pd.DataFrame(self._edges, columns=["src", "dst", "timestamp"])
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\frame.py", line 855, in __init__
-    arrays, columns, index = nested_data_to_arrays(
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 520, in nested_data_to_arrays
-    arrays, columns = to_arrays(data, columns, dtype=dtype)
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 835, in to_arrays
-    arr = _list_to_arrays(data)
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\core\internals\construction.py", line 853, in _list_to_arrays
-    content = lib.to_object_array_tuples(data)
-  File "pandas/_libs/lib.pyx", line 3101, in pandas._libs.lib.to_object_array_tuples
-numpy._core._exceptions._ArrayMemoryError: Unable to allocate 464. KiB for an array with shape (19812, 3) and data type object
+[preprocess] 删除 412 个孤立节点，剩余 19588 个节点
+Round    1/100  coverage=0.0510  prec@K=0.0010  accepted=20  loss=nan  (3.0s)
+Round    2/100  coverage=0.0520  prec@K=0.0010  accepted=20  loss=nan  (1.2s)
+Round    3/100  coverage=0.0530  prec@K=0.0010  accepted=20  loss=nan  (2.0s)
+Round    4/100  coverage=0.0540  prec@K=0.0010  accepted=20  loss=nan  (2.8s)
+Round    5/100  coverage=0.0550  prec@K=0.0010  accepted=20  loss=nan  (3.8s)
+Round    6/100  coverage=0.0560  prec@K=0.0010  accepted=20  loss=nan  (4.8s)
+Round    7/100  coverage=0.0570  prec@K=0.0010  accepted=20  loss=nan  (6.0s)
+Round    8/100  coverage=0.0580  prec@K=0.0010  accepted=20  loss=nan  (7.5s)
+Round    9/100  coverage=0.0591  prec@K=0.0010  accepted=20  loss=nan  (8.8s)
+Round   10/100  coverage=0.0601  prec@K=0.0010  accepted=20  loss=nan  (10.6s)
+Round   11/100  coverage=0.0611  prec@K=0.0010  accepted=20  loss=nan  (12.5s)
+Round   12/100  coverage=0.0621  prec@K=0.0010  accepted=20  loss=nan  (14.5s)
+Round   13/100  coverage=0.0631  prec@K=0.0010  accepted=20  loss=nan  (16.4s)
+Round   14/100  coverage=0.0641  prec@K=0.0010  accepted=20  loss=nan  (18.6s)
+Round   15/100  coverage=0.0651  prec@K=0.0010  accepted=20  loss=nan  (20.7s)
+Round   16/100  coverage=0.0661  prec@K=0.0010  accepted=20  loss=nan  (22.8s)
+Round   17/100  coverage=0.0671  prec@K=0.0010  accepted=20  loss=nan  (25.1s)
+Round   18/100  coverage=0.0681  prec@K=0.0010  accepted=20  loss=nan  (27.3s)
+Round   19/100  coverage=0.0692  prec@K=0.0010  accepted=20  loss=nan  (28.6s)
+Round   20/100  coverage=0.0702  prec@K=0.0010  accepted=20  loss=nan  (30.5s)
+Round   21/100  coverage=0.0712  prec@K=0.0010  accepted=20  loss=nan  (32.3s)
+Round   22/100  coverage=0.0722  prec@K=0.0010  accepted=20  loss=nan  (34.0s)
+Round   23/100  coverage=0.0732  prec@K=0.0010  accepted=20  loss=nan  (36.3s)
+Round   24/100  coverage=0.0742  prec@K=0.0010  accepted=20  loss=nan  (38.1s)
+Round   25/100  coverage=0.0753  prec@K=0.0011  accepted=21  loss=nan  (40.1s)
+Round   26/100  coverage=0.0763  prec@K=0.0010  accepted=20  loss=nan  (41.5s)
+Round   27/100  coverage=0.0773  prec@K=0.0010  accepted=20  loss=nan  (44.7s)
+Round   28/100  coverage=0.0783  prec@K=0.0010  accepted=20  loss=nan  (47.7s)
+Round   29/100  coverage=0.0793  prec@K=0.0010  accepted=20  loss=nan  (45.9s)
+Round   30/100  coverage=0.0803  prec@K=0.0010  accepted=20  loss=nan  (51.4s)
+Round   31/100  coverage=0.0813  prec@K=0.0010  accepted=20  loss=nan  (50.5s)
+Round   32/100  coverage=0.0823  prec@K=0.0010  accepted=20  loss=nan  (50.8s)
+Round   33/100  coverage=0.0833  prec@K=0.0010  accepted=20  loss=nan  (52.6s)
+Round   34/100  coverage=0.0843  prec@K=0.0010  accepted=20  loss=nan  (54.6s)
+Round   35/100  coverage=0.0854  prec@K=0.0010  accepted=20  loss=nan  (56.1s)
+Round   36/100  coverage=0.0864  prec@K=0.0010  accepted=20  loss=nan  (57.4s)
+Round   37/100  coverage=0.0874  prec@K=0.0010  accepted=20  loss=nan  (58.7s)
+Round   38/100  coverage=0.0884  prec@K=0.0010  accepted=20  loss=nan  (60.7s)
+Round   39/100  coverage=0.0894  prec@K=0.0010  accepted=20  loss=nan  (62.0s)
+Round   40/100  coverage=0.0905  prec@K=0.0011  accepted=21  loss=nan  (69.2s)
+Round   41/100  coverage=0.0915  prec@K=0.0010  accepted=20  loss=nan  (73.3s)
+Round   42/100  coverage=0.0925  prec@K=0.0010  accepted=20  loss=nan  (70.6s)
+Round   43/100  coverage=0.0935  prec@K=0.0010  accepted=20  loss=nan  (72.4s)
+Round   44/100  coverage=0.0945  prec@K=0.0010  accepted=20  loss=nan  (75.7s)
+Round   45/100  coverage=0.0955  prec@K=0.0010  accepted=20  loss=nan  (75.4s)
+Round   46/100  coverage=0.0965  prec@K=0.0010  accepted=20  loss=nan  (76.7s)
+Round   47/100  coverage=0.0975  prec@K=0.0010  accepted=20  loss=nan  (81.3s)
+Round   48/100  coverage=0.0985  prec@K=0.0010  accepted=20  loss=nan  (80.9s)
+Round   49/100  coverage=0.0995  prec@K=0.0010  accepted=20  loss=nan  (82.5s)
+Round   50/100  coverage=0.1005  prec@K=0.0010  accepted=20  loss=nan  (82.9s)
+Round   51/100  coverage=0.1016  prec@K=0.0010  accepted=20  loss=nan  (87.1s)
+Round   52/100  coverage=0.1026  prec@K=0.0010  accepted=20  loss=nan  (92.9s)
+Round   53/100  coverage=0.1036  prec@K=0.0011  accepted=21  loss=nan  (102.9s)
+Round   54/100  coverage=0.1046  prec@K=0.0010  accepted=20  loss=nan  (90.7s)
+Round   55/100  coverage=0.1056  prec@K=0.0010  accepted=20  loss=nan  (93.0s)
+Round   56/100  coverage=0.1067  prec@K=0.0010  accepted=20  loss=nan  (93.6s)
+Round   57/100  coverage=0.1077  prec@K=0.0010  accepted=20  loss=nan  (95.9s)
+Round   58/100  coverage=0.1087  prec@K=0.0010  accepted=20  loss=nan  (102.4s)
+Round   59/100  coverage=0.1097  prec@K=0.0010  accepted=20  loss=nan  (101.3s)
+Round   60/100  coverage=0.1107  prec@K=0.0010  accepted=20  loss=nan  (103.5s)
+Round   61/100  coverage=0.1117  prec@K=0.0010  accepted=20  loss=nan  (105.5s)
+Round   62/100  coverage=0.1127  prec@K=0.0010  accepted=20  loss=nan  (91.9s)
+Round   63/100  coverage=0.1137  prec@K=0.0010  accepted=20  loss=nan  (94.0s)
+Round   64/100  coverage=0.1147  prec@K=0.0010  accepted=20  loss=nan  (96.6s)

@@ -1,0 +1,17 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+[preprocess] 删除 183 个孤立节点，剩余 4817 个节点
+Round    1/500  coverage=0.2507  prec@K=0.0008  accepted=4  loss=nan  (0.2s)
+Round   51/500  coverage=0.3459  prec@K=0.0021  accepted=10  loss=nan  (1.5s)
+Round  101/500  coverage=0.4425  prec@K=0.0021  accepted=10  loss=0.5835  (1.6s)
+Round  151/500  coverage=0.5401  prec@K=0.0019  accepted=9  loss=nan  (1.8s)
+Round  201/500  coverage=0.6405  prec@K=0.0017  accepted=8  loss=nan  (2.1s)
+Round  251/500  coverage=0.7365  prec@K=0.0021  accepted=10  loss=nan  (2.2s)
+Round  301/500  coverage=0.8318  prec@K=0.0021  accepted=10  loss=0.6098  (2.9s)
+Round  351/500  coverage=0.9234  prec@K=0.0021  accepted=10  loss=nan  (3.0s)
+Round  401/500  coverage=0.9756  prec@K=0.0000  accepted=0  loss=nan  (3.3s)
+Round  451/500  coverage=0.9758  prec@K=0.0000  accepted=0  loss=nan  (3.2s)
+
+结果已写入 results\online\algo_sweep_sbm5k_init025_cd_hard5\sbm5k_mlp/rounds.csv

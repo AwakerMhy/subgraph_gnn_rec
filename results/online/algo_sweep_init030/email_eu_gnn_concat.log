@@ -1,0 +1,16 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/500  coverage=0.3099  prec@K=0.2595  accepted=247  loss=0.6736  (0.5s)
+Round   51/500  coverage=0.3728  prec@K=0.0113  accepted=11  loss=0.4027  (0.3s)
+Round  101/500  coverage=0.3847  prec@K=0.0062  accepted=6  loss=0.0500  (0.4s)
+Round  151/500  coverage=0.3909  prec@K=0.0021  accepted=2  loss=0.0213  (0.4s)
+Round  201/500  coverage=0.3928  prec@K=0.0000  accepted=0  loss=0.0035  (0.4s)
+Round  251/500  coverage=0.4550  prec@K=0.1357  accepted=133  loss=0.5677  (0.5s)
+Round  301/500  coverage=0.5262  prec@K=0.0041  accepted=4  loss=0.0376  (0.6s)
+Round  351/500  coverage=0.5290  prec@K=0.0000  accepted=0  loss=0.0053  (0.6s)
+Round  401/500  coverage=0.5301  prec@K=0.0010  accepted=1  loss=0.0117  (0.6s)
+Round  451/500  coverage=0.5307  prec@K=0.0000  accepted=0  loss=0.0047  (0.5s)
+
+结果已写入 results\online\algo_sweep_init030\email_eu_gnn_concat/rounds.csv

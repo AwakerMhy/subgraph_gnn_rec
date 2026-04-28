@@ -45,11 +45,14 @@ def _load_dataset(cfg: dict) -> tuple[pd.DataFrame, int, "torch.Tensor | None"]:
     """加载数据集，丢弃时间戳，返回 (star_edges_df, n_nodes, node_feat)。"""
     dtype = cfg["dataset"]["type"]
 
-    if dtype in ("sbm", "triadic"):
+    if dtype in ("sbm", "dcsbm", "triadic"):
         params = cfg["dataset"].get("params", {})
         if dtype == "sbm":
             from src.dataset.synthetic.sbm import SBMGenerator  # noqa: PLC0415
             gen = SBMGenerator(**params)
+        elif dtype == "dcsbm":
+            from src.dataset.synthetic.dcsbm import DCSBMGenerator  # noqa: PLC0415
+            gen = DCSBMGenerator(**params)
         else:
             from src.dataset.synthetic.triadic import TriadicGenerator  # noqa: PLC0415
             gen = TriadicGenerator(**params)
@@ -76,6 +79,7 @@ def _load_dataset(cfg: dict) -> tuple[pd.DataFrame, int, "torch.Tensor | None"]:
 
 
 _HEURISTIC_TYPES: frozenset[str] = frozenset({"cn", "aa", "jaccard", "pa"})
+_NO_MODEL_TYPES: frozenset[str] = frozenset({"random", "ground_truth"}) | _HEURISTIC_TYPES
 
 
 def _score_heuristic(
@@ -177,7 +181,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
     total_rounds = cfg.get("total_rounds", 100)
     update_every = trainer_cfg.get("update_every_n_rounds", 1)
 
-    if model_type == "random":
+    if model_type in ("random", "ground_truth"):
         model = None
         optimizer = None
         trainer = None
@@ -339,6 +343,22 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
                 recs[u] = [cand_nodes[int(i)] for i in perm]
                 continue
+            elif model_type == "ground_truth":
+                _star_set = env.star_set
+                true_cands = [v for v in cand_nodes if (u, v) in _star_set]
+                if len(true_cands) >= top_k_rec:
+                    chosen = _rng.choice(len(true_cands), top_k_rec, replace=False)
+                    recs[u] = [true_cands[int(i)] for i in chosen]
+                else:
+                    false_cands = [v for v in cand_nodes if (u, v) not in _star_set]
+                    fill_n = top_k_rec - len(true_cands)
+                    if false_cands and fill_n > 0:
+                        fill_n = min(fill_n, len(false_cands))
+                        chosen_fill = _rng.choice(len(false_cands), fill_n, replace=False)
+                        recs[u] = true_cands + [false_cands[int(i)] for i in chosen_fill]
+                    else:
+                        recs[u] = true_cands
+                continue
             elif model_type == "node_emb":
                 u_t = torch.tensor([u] * len(cand_nodes), dtype=torch.long, device=device)
                 v_t = torch.tensor(cand_nodes, dtype=torch.long, device=device)
@@ -363,7 +383,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         feedback = env.step(recs, t)
 
         # 在线更新：冷启动用户的 rejected 不参与训练（随机负样本信噪比低）
-        if model_type == "random" or model_type in _HEURISTIC_TYPES:
+        if model_type in _NO_MODEL_TYPES:
             train_result = {}
         elif t % update_every == 0:
             recall_rejected = [(u, v) for u, v in feedback.rejected

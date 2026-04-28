@@ -1,0 +1,16 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/500  coverage=0.2531  prec@K=0.0379  accepted=63  loss=0.6094  (0.6s)
+Round   51/500  coverage=0.3603  prec@K=0.0174  accepted=31  loss=0.5503  (0.5s)
+Round  101/500  coverage=0.4002  prec@K=0.0066  accepted=12  loss=0.4427  (0.5s)
+Round  151/500  coverage=0.4197  prec@K=0.0022  accepted=4  loss=0.0383  (0.4s)
+Round  201/500  coverage=0.4310  prec@K=0.0022  accepted=4  loss=0.0224  (0.4s)
+Round  251/500  coverage=0.4394  prec@K=0.0011  accepted=2  loss=0.0160  (0.5s)
+Round  301/500  coverage=0.4452  prec@K=0.0005  accepted=1  loss=0.0085  (0.4s)
+Round  351/500  coverage=0.4490  prec@K=0.0006  accepted=1  loss=0.0094  (0.4s)
+Round  401/500  coverage=0.4518  prec@K=0.0000  accepted=0  loss=0.0032  (0.4s)
+Round  451/500  coverage=0.4539  prec@K=0.0006  accepted=1  loss=0.0069  (0.4s)
+
+结果已写入 results\online\eps_sweep\college_msg_eps05_01/rounds.csv

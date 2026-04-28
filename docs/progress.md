@@ -1,7 +1,21 @@
 # docs/progress.md — 历史变更日志
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-27
+> 最后更新：2026-04-28 00:00
+
+[2026-04-27 17:30] [算法对比实验 + ε-greedy 扫描（4数据集，init=0.25/0.30）] [scripts/run_algo_sweep.py, scripts/run_eps_sweep.py, results/online/algo_sweep*, results/online/eps_sweep] [完成]
+- 11种算法（ground_truth/gnn/gnn_sum/gnn_concat/node_emb/mlp/cn/aa/jaccard/pa/random）× 4数据集对比
+- 核心发现1：无探索的GNN在coverage上输给random，原因是集中推荐高分节点触发cooldown
+- 核心发现2：GNN-sum排序质量（hits@1/MRR@1）远优于random（email_eu高出72%），但需要ε-greedy才能转化为coverage优势
+- 核心发现3：ε-greedy GNN-sum 在3/4数据集超过random（email_eu +0.033），ε=0.1~0.3为推荐配置
+- 核心发现4：瓶颈在召回而非精排——ground_truth与random差距在多数数据集仅0.01~0.06
+- init=0.30比init=0.25全面提升约0.04~0.10，仍在有效区间内
+- gnn_sum全面优于gnn_last和gnn_concat，后续默认encoder_type: layer_sum
+
+[2026-04-27 16:00] [新增 ground_truth 精排模型（召回上界基线）] [src/online/loop.py] [完成]
+- model.type: ground_truth：从召回候选中挑出 G* 真实边推荐
+- m >= k：随机选 k 条真实边；m < k：全部真实边 + 随机补非真实边至 k
+- 无需模型/优化器，训练阶段自动跳过（归入 _NO_MODEL_TYPES）
 
 [2026-04-27 15:00] [新增 wiki_vote / slashdot 数据集 loader 及预处理] [src/dataset/real/wiki_vote.py(+新建), src/dataset/real/slashdot.py(+新建), data/processed/wiki_vote/, data/processed/slashdot/, BLUEPRINT.md] [完成]
 - Enron (recip=1.000) 排除，不满足有向稀疏条件
@@ -227,3 +241,23 @@
 - 主要互补形式：时序互补（冷启动用random/node_emb兜底→图成熟后切gnn主导），
   而非简单混合推荐列表（会稀释精度）
 - 潜在方向：动态切换策略，按图密度或轮次自动调整主推模型
+
+[2026-04-28] [slashdot + epinions algo_sweep（11方法，100轮）] [configs/online/algo_sweep_slashdot/*(11个新建), configs/online/algo_sweep_epinions/*(11个新建), results/online/algo_sweep_slashdot/*, results/online/algo_sweep_epinions/*] [完成]
+
+slashdot（77k节点，517k边，recip=0.186，sample_ratio=0.01）round 100结果：
+- coverage：ground_truth=0.293 > cn=0.270 > gnn_sum=0.269 > aa=0.269 > gnn=0.263 > random=0.263 > pa=0.265 > jaccard=0.265 > gnn_concat=0.258 > node_emb=0.252 > mlp=0.251
+- prec@K：random=0.0094 > gnn=0.0035 > gnn_sum=0.0031 > gnn_concat=0.0012（mlp/node_emb≈0）
+- MRR@10：random=0.317 > gnn_concat=0.319 > cn=0.290 > gnn=0.286 > gnn_sum=0.226 > aa=0.208（mlp/node_emb缺失）
+- 特点：slashdot上随机方法MRR竟高于GNN系列，可能与大图冷启动+子图稀疏有关
+
+epinions（76k节点，509k边，recip未知，sample_ratio=0.01）round 100结果：
+- coverage：ground_truth=0.357 > aa=0.295 > gnn_sum=0.294 > cn=0.292 > jaccard=0.284 > random=0.282 > gnn=0.278 > pa=0.275 > gnn_concat=0.272 > node_emb=0.259 > mlp=0.255
+- prec@K：gnn_sum=0.0109 > random=0.0182 > gnn=0.0085（mlp/node_emb≈0）
+- MRR@10：ground_truth=1.0 > random=0.388 > gnn_sum=0.320 > gnn=0.296 > gnn_concat=0.283 > cn=0.207 > jaccard=0.202 > pa=0.194 > aa=0.172 > mlp=0.111 > node_emb=0.000
+- 亮点：epinions上gnn_sum MRR@10(0.320)明显优于aa/cn启发式(0.172/0.207)，与slashdot规律不同
+
+[2026-04-28] [cooldown模式对比 + wiki_vote多方法评测] [scripts/run_algo_sweep.py, results/online/algo_sweep_init025_cd_hard5, results/online/algo_sweep_wiki_vote_init025_cd_hard5] [完成]
+- cooldown三种模式对比（decay5/hard0/hard5），4真实数据集×11方法：hard5全面最优，均值coverage提升+0.03~+0.14；hard0≈decay5
+- 核心发现：硬排除（hard）而非衰减（decay）才是关键，5轮窗口足够；后续实验默认改用hard5
+- SBM5k（hard5）：启发式方法coverage达0.97+，结构过于规律；DC-SBM5k覆盖率仅0.27~0.30，召回瓶颈突出
+- wiki_vote（100轮，hard5，8方法）：gnn_sum最强（coverage=0.453，mrr@10=0.376），高于random（0.408/0.356）；pa垫底
