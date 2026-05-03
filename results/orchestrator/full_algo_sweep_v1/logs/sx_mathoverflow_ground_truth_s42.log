@@ -1,0 +1,18 @@
+=== sx_mathoverflow_ground_truth_s42  started 2026-05-04T01:03:44 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/100  coverage=0.2502  prec@K=0.0164  accepted=39  loss=nan  (0.9s)
+Round   11/100  coverage=0.2526  prec@K=0.0183  accepted=44  loss=nan  (1.0s)
+Round   21/100  coverage=0.2549  prec@K=0.0214  accepted=50  loss=nan  (1.2s)
+Round   31/100  coverage=0.2572  prec@K=0.0215  accepted=52  loss=nan  (1.5s)
+Round   41/100  coverage=0.2595  prec@K=0.0345  accepted=83  loss=nan  (1.5s)
+Round   51/100  coverage=0.2617  prec@K=0.0153  accepted=37  loss=nan  (1.8s)
+Round   61/100  coverage=0.2638  prec@K=0.0256  accepted=60  loss=nan  (1.9s)
+Round   71/100  coverage=0.2661  prec@K=0.0246  accepted=59  loss=nan  (2.2s)
+Round   81/100  coverage=0.2681  prec@K=0.0088  accepted=21  loss=nan  (2.2s)
+Round   91/100  coverage=0.2703  prec@K=0.0134  accepted=32  loss=nan  (2.2s)
+
+结果已写入 results\orchestrator\runs\full_algo_sweep_v1\sx_mathoverflow\ground_truth/rounds.csv

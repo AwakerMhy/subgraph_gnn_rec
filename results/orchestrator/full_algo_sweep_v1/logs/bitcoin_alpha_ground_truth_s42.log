@@ -1,0 +1,18 @@
+=== bitcoin_alpha_ground_truth_s42  started 2026-05-03T23:29:13 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/100  coverage=0.2583  prec@K=0.0574  accepted=201  loss=nan  (0.3s)
+Round   11/100  coverage=0.3291  prec@K=0.0287  accepted=103  loss=nan  (0.8s)
+Round   21/100  coverage=0.3894  prec@K=0.0395  accepted=139  loss=nan  (1.3s)
+Round   31/100  coverage=0.4304  prec@K=0.0286  accepted=101  loss=nan  (2.0s)
+Round   41/100  coverage=0.4631  prec@K=0.0314  accepted=112  loss=nan  (2.3s)
+Round   51/100  coverage=0.4918  prec@K=0.0202  accepted=70  loss=nan  (2.5s)
+Round   61/100  coverage=0.5151  prec@K=0.0099  accepted=35  loss=nan  (3.4s)
+Round   71/100  coverage=0.5327  prec@K=0.0121  accepted=42  loss=nan  (3.7s)
+Round   81/100  coverage=0.5480  prec@K=0.0134  accepted=47  loss=nan  (4.0s)
+Round   91/100  coverage=0.5617  prec@K=0.0102  accepted=36  loss=nan  (3.5s)
+
+结果已写入 results\orchestrator\runs\full_algo_sweep_v1\bitcoin_alpha\ground_truth/rounds.csv

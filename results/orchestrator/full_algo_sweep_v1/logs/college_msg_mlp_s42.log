@@ -1,0 +1,18 @@
+=== college_msg_mlp_s42  started 2026-05-03T23:11:44 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/100  coverage=0.2519  prec@K=0.0220  accepted=39  loss=0.7439  (0.2s)
+Round   11/100  coverage=0.2635  prec@K=0.0111  accepted=20  loss=0.7440  (0.3s)
+Round   21/100  coverage=0.2699  prec@K=0.0051  accepted=9  loss=0.7375  (0.4s)
+Round   31/100  coverage=0.2740  prec@K=0.0068  accepted=12  loss=0.7331  (0.4s)
+Round   41/100  coverage=0.2770  prec@K=0.0011  accepted=2  loss=0.7266  (0.5s)
+Round   51/100  coverage=0.2792  prec@K=0.0028  accepted=5  loss=0.7192  (0.5s)
+Round   61/100  coverage=0.2807  prec@K=0.0023  accepted=4  loss=0.7114  (0.6s)
+Round   71/100  coverage=0.2820  prec@K=0.0022  accepted=4  loss=0.7073  (0.6s)
+Round   81/100  coverage=0.2829  prec@K=0.0000  accepted=0  loss=nan  (0.6s)
+Round   91/100  coverage=0.2839  prec@K=0.0023  accepted=4  loss=0.6957  (0.7s)
+
+结果已写入 results\orchestrator\runs\full_algo_sweep_v1\college_msg\mlp/rounds.csv

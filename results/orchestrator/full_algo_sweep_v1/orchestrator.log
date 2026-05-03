@@ -1,0 +1,174 @@
+[orchestrator] sweep=full_algo_sweep_v1  cells=42  resume=True  dry_run=False
+[orchestrator] ledger: {'pending': 42}
+
+  [queue] email_eu_aa_s42  n_nodes=986
+  [completed] email_eu_aa_s42  (23.1s)
+
+  [queue] email_eu_cn_s42  n_nodes=986
+  [completed] email_eu_cn_s42  (14.3s)
+
+  [queue] email_eu_gnn_sum_s42  n_nodes=986
+  [completed] email_eu_gnn_sum_s42  (65.6s)
+
+  [queue] email_eu_ground_truth_s42  n_nodes=986
+  [completed] email_eu_ground_truth_s42  (17.7s)
+
+  [queue] email_eu_jaccard_s42  n_nodes=986
+  [completed] email_eu_jaccard_s42  (21.8s)
+
+  [queue] email_eu_mlp_s42  n_nodes=986
+  [completed] email_eu_mlp_s42  (20.0s)
+
+  [queue] email_eu_random_s42  n_nodes=986
+  [completed] email_eu_random_s42  (18.7s)
+
+  [queue] dnc_email_aa_s42  n_nodes=1866
+  [completed] dnc_email_aa_s42  (92.4s)
+
+  [queue] dnc_email_cn_s42  n_nodes=1866
+  [completed] dnc_email_cn_s42  (85.6s)
+
+  [queue] dnc_email_gnn_sum_s42  n_nodes=1866
+  [completed] dnc_email_gnn_sum_s42  (190.5s)
+
+  [queue] dnc_email_ground_truth_s42  n_nodes=1866
+  [completed] dnc_email_ground_truth_s42  (77.1s)
+
+  [queue] dnc_email_jaccard_s42  n_nodes=1866
+  [completed] dnc_email_jaccard_s42  (86.9s)
+
+  [queue] dnc_email_mlp_s42  n_nodes=1866
+  [completed] dnc_email_mlp_s42  (85.2s)
+
+  [queue] dnc_email_random_s42  n_nodes=1866
+  [completed] dnc_email_random_s42  (89.8s)
+
+  [queue] college_msg_aa_s42  n_nodes=1899
+  [completed] college_msg_aa_s42  (51.2s)
+
+  [queue] college_msg_cn_s42  n_nodes=1899
+  [completed] college_msg_cn_s42  (50.2s)
+
+  [queue] college_msg_gnn_sum_s42  n_nodes=1899
+  [completed] college_msg_gnn_sum_s42  (129.8s)
+
+  [queue] college_msg_ground_truth_s42  n_nodes=1899
+  [completed] college_msg_ground_truth_s42  (51.1s)
+
+  [queue] college_msg_jaccard_s42  n_nodes=1899
+  [completed] college_msg_jaccard_s42  (48.2s)
+
+  [queue] college_msg_mlp_s42  n_nodes=1899
+  [completed] college_msg_mlp_s42  (50.5s)
+
+  [queue] college_msg_random_s42  n_nodes=1899
+  [completed] college_msg_random_s42  (48.7s)
+
+  [queue] bitcoin_alpha_aa_s42  n_nodes=3783
+  [completed] bitcoin_alpha_aa_s42  (245.3s)
+
+  [queue] bitcoin_alpha_cn_s42  n_nodes=3783
+  [completed] bitcoin_alpha_cn_s42  (235.2s)
+
+  [queue] bitcoin_alpha_gnn_sum_s42  n_nodes=3783
+  [completed] bitcoin_alpha_gnn_sum_s42  (469.4s)
+
+  [queue] bitcoin_alpha_ground_truth_s42  n_nodes=3783
+  [completed] bitcoin_alpha_ground_truth_s42  (219.0s)
+
+  [queue] bitcoin_alpha_jaccard_s42  n_nodes=3783
+  [completed] bitcoin_alpha_jaccard_s42  (170.5s)
+
+  [queue] bitcoin_alpha_mlp_s42  n_nodes=3783
+  [completed] bitcoin_alpha_mlp_s42  (124.0s)
+
+  [queue] bitcoin_alpha_random_s42  n_nodes=3783
+  [completed] bitcoin_alpha_random_s42  (229.3s)
+
+  [queue] wiki_vote_aa_s42  n_nodes=7115
+  [completed] wiki_vote_aa_s42  (1155.1s)
+
+  [queue] wiki_vote_cn_s42  n_nodes=7115
+  [completed] wiki_vote_cn_s42  (441.7s)
+
+  [queue] wiki_vote_gnn_sum_s42  n_nodes=7115
+  [completed] wiki_vote_gnn_sum_s42  (919.4s)
+
+  [queue] wiki_vote_ground_truth_s42  n_nodes=7115
+  [completed] wiki_vote_ground_truth_s42  (565.3s)
+
+  [queue] wiki_vote_jaccard_s42  n_nodes=7115
+  [completed] wiki_vote_jaccard_s42  (471.7s)
+
+  [queue] wiki_vote_mlp_s42  n_nodes=7115
+  [completed] wiki_vote_mlp_s42  (445.1s)
+
+  [queue] wiki_vote_random_s42  n_nodes=7115
+  [completed] wiki_vote_random_s42  (536.6s)
+
+  [queue] sx_mathoverflow_aa_s42  n_nodes=24759
+  [completed] sx_mathoverflow_aa_s42  (111.0s)
+
+  [queue] sx_mathoverflow_cn_s42  n_nodes=24759
+  [completed] sx_mathoverflow_cn_s42  (108.0s)
+
+  [queue] sx_mathoverflow_gnn_sum_s42  n_nodes=24759
+  [completed] sx_mathoverflow_gnn_sum_s42  (173.3s)
+
+  [queue] sx_mathoverflow_ground_truth_s42  n_nodes=24759
+  [completed] sx_mathoverflow_ground_truth_s42  (103.7s)
+
+  [queue] sx_mathoverflow_jaccard_s42  n_nodes=24759
+  [completed] sx_mathoverflow_jaccard_s42  (108.2s)
+
+  [queue] sx_mathoverflow_mlp_s42  n_nodes=24759
+  [completed] sx_mathoverflow_mlp_s42  (108.6s)
+
+  [queue] sx_mathoverflow_random_s42  n_nodes=24759
+  [completed] sx_mathoverflow_random_s42  (105.1s)
+
+[orchestrator] DONE ¡ª {'completed': 42}
+
+        dataset       method  final_coverage  final_mrr@5  final_mrr@10  final_hits@5
+  bitcoin_alpha           aa        0.397255     0.241667      0.291997      0.583333
+  bitcoin_alpha           cn        0.397751     0.250000      0.337996      0.250000
+  bitcoin_alpha      gnn_sum        0.332052     0.528571      0.562302      0.714286
+  bitcoin_alpha ground_truth        0.573390     1.000000      1.000000      1.000000
+  bitcoin_alpha      jaccard        0.339453     0.310417      0.339931      0.750000
+  bitcoin_alpha          mlp        0.347143     0.245000      0.297500      0.500000
+  bitcoin_alpha       random        0.344207     0.123333      0.199008      0.400000
+    college_msg           aa        0.306563     0.000000      0.111111      0.000000
+    college_msg           cn        0.311687     0.200000      0.301905      0.200000
+    college_msg      gnn_sum        0.303410     0.625000      0.660714      0.750000
+    college_msg ground_truth        0.519511     1.000000      1.000000      1.000000
+    college_msg      jaccard        0.286115          NaN           NaN           NaN
+    college_msg          mlp        0.284490     0.125000      0.219742      0.250000
+    college_msg       random        0.319472     0.472222      0.472222      1.000000
+      dnc_email           aa        0.519848     0.000000      0.142857      0.000000
+      dnc_email           cn        0.508610     0.416667      0.453704      0.666667
+      dnc_email      gnn_sum        0.377560          NaN           NaN           NaN
+      dnc_email ground_truth        0.685155     1.000000      1.000000      1.000000
+      dnc_email      jaccard        0.464564     0.000000      0.100000      0.000000
+      dnc_email          mlp        0.423600     0.333333      0.436508      0.333333
+      dnc_email       random        0.435019     0.225000      0.250000      0.750000
+       email_eu           aa        0.629147     0.203030      0.254654      0.545455
+       email_eu           cn        0.613863     0.184848      0.262734      0.363636
+       email_eu      gnn_sum        0.629387     0.440000      0.480675      0.700000
+       email_eu ground_truth        0.865979     1.000000      1.000000      1.000000
+       email_eu      jaccard        0.605720     0.220513      0.299847      0.384615
+       email_eu          mlp        0.346063     0.022222      0.135935      0.111111
+       email_eu       random        0.475069     0.200000      0.254318      0.529412
+sx_mathoverflow           aa        0.259971     0.437500      0.492229      0.583333
+sx_mathoverflow           cn        0.259787     0.265152      0.339719      0.454545
+sx_mathoverflow      gnn_sum        0.253256     0.630952      0.630952      1.000000
+sx_mathoverflow ground_truth        0.272002     1.000000      1.000000      1.000000
+sx_mathoverflow      jaccard        0.255260     0.550000      0.591667      0.750000
+sx_mathoverflow          mlp        0.256940     0.479167      0.528770      0.625000
+sx_mathoverflow       random        0.252830     0.095238      0.202948      0.285714
+      wiki_vote           aa        0.357145     0.328922      0.379447      0.588235
+      wiki_vote           cn        0.356788     0.308333      0.361633      0.578947
+      wiki_vote      gnn_sum        0.300717     0.399242      0.451317      0.590909
+      wiki_vote ground_truth        0.589889     1.000000      1.000000      1.000000
+      wiki_vote      jaccard        0.341830     0.244271      0.302679      0.500000
+      wiki_vote          mlp        0.314546     0.332456      0.382414      0.631579
+      wiki_vote       random        0.330228     0.294097      0.335483      0.687500

@@ -1,7 +1,7 @@
 """scripts/preprocess_new_datasets.py — 批量预处理新增数据集
 
 用法：
-    python scripts/preprocess_new_datasets.py [--datasets all|facebook_ego|...]
+    python scripts/preprocess_new_datasets.py [--datasets all|facebook_ego|...|advogato|digg|higgs_reply]
 """
 from __future__ import annotations
 
@@ -17,6 +17,9 @@ LOADERS = {
     "lastfm_asia": ("src.dataset.real.lastfm_asia", "LastFMAsiaDatset"),
     "epinions": ("src.dataset.real.epinions", "EpinionsDataset"),
     "ogbl_collab": ("src.dataset.real.ogbl_collab", "OgblCollabDataset"),
+    "advogato": ("src.dataset.real.advogato", "AdvogatoDataset"),
+    "digg": ("src.dataset.real.digg", "DiggDataset"),
+    "higgs_reply": ("src.dataset.real.higgs_reply", "HiggsReplyDataset"),
 }
 
 

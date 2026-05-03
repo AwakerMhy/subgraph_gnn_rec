@@ -1,0 +1,13 @@
+=== email_eu_ground_truth_s42  started 2026-05-03T22:48:21 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/5  coverage=0.2660  prec@K=0.4182  accepted=399  loss=nan  (0.1s)
+Round    2/5  coverage=0.2835  prec@K=0.4595  accepted=437  loss=nan  (0.0s)
+Round    3/5  coverage=0.2994  prec@K=0.4064  accepted=395  loss=nan  (0.0s)
+Round    4/5  coverage=0.3166  prec@K=0.4447  accepted=430  loss=nan  (0.0s)
+Round    5/5  coverage=0.3335  prec@K=0.4373  accepted=422  loss=nan  (0.0s)
+
+结果已写入 results\orchestrator\runs\smoke\email_eu\ground_truth/rounds.csv

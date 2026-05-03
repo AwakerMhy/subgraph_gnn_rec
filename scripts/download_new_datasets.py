@@ -1,8 +1,8 @@
 """scripts/download_new_datasets.py — 批量下载新数据集原始文件
 
 用法：
-    python scripts/download_new_datasets.py [--datasets all|facebook_ego|twitch_gamers|lastfm_asia|epinions|ogbl_collab]
-    python scripts/download_new_datasets.py --datasets facebook_ego lastfm_asia
+    python scripts/download_new_datasets.py [--datasets all|facebook_ego|twitch_gamers|lastfm_asia|epinions|ogbl_collab|advogato|digg|higgs_reply]
+    python scripts/download_new_datasets.py --datasets advogato digg higgs_reply
 """
 from __future__ import annotations
 
@@ -45,6 +45,24 @@ DATASETS = {
         "dest_dir": RAW_DIR / "ogbl_collab",
         "filename": None,
         "post": "ogb",
+    },
+    "advogato": {
+        "url": "http://konect.cc/files/download.tsv.advogato.tar.bz2",
+        "dest_dir": RAW_DIR / "advogato",
+        "filename": "download.tsv.advogato.tar.bz2",
+        "post": None,
+    },
+    "digg": {
+        "url": "http://konect.cc/files/download.tsv.munmun_digg_reply.tar.bz2",
+        "dest_dir": RAW_DIR / "digg",
+        "filename": "download.tsv.munmun_digg_reply.tar.bz2",
+        "post": None,
+    },
+    "higgs_reply": {
+        "url": "https://snap.stanford.edu/data/higgs-reply_network.edgelist.gz",
+        "dest_dir": RAW_DIR / "higgs_reply",
+        "filename": "higgs-reply_network.edgelist.gz",
+        "post": None,
     },
 }
 

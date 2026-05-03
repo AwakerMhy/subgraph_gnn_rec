@@ -1,0 +1,18 @@
+=== wiki_vote_ground_truth_s42  started 2026-05-04T00:23:33 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/100  coverage=0.2573  prec@K=0.1142  accepted=760  loss=nan  (0.4s)
+Round   11/100  coverage=0.3153  prec@K=0.0808  accepted=540  loss=nan  (1.3s)
+Round   21/100  coverage=0.3627  prec@K=0.0658  accepted=444  loss=nan  (2.5s)
+Round   31/100  coverage=0.4042  prec@K=0.0664  accepted=446  loss=nan  (5.2s)
+Round   41/100  coverage=0.4391  prec@K=0.0517  accepted=345  loss=nan  (6.8s)
+Round   51/100  coverage=0.4716  prec@K=0.0496  accepted=337  loss=nan  (8.2s)
+Round   61/100  coverage=0.5033  prec@K=0.0417  accepted=286  loss=nan  (8.7s)
+Round   71/100  coverage=0.5285  prec@K=0.0383  accepted=261  loss=nan  (9.0s)
+Round   81/100  coverage=0.5514  prec@K=0.0322  accepted=217  loss=nan  (9.2s)
+Round   91/100  coverage=0.5720  prec@K=0.0398  accepted=269  loss=nan  (9.2s)
+
+结果已写入 results\orchestrator\runs\full_algo_sweep_v1\wiki_vote\ground_truth/rounds.csv
