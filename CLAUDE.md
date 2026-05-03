@@ -1,7 +1,7 @@
 # Social Network Online Learning Simulation — CLAUDE.md
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-25
+> 最后更新：2026-05-03
 >
 > **本文件是 Claude Code 在本项目中的行为规范，每次会话开始时自动加载。**
 
@@ -281,6 +281,26 @@ pyyaml, tqdm, matplotlib, jupyter
 ### 时间泄露防护
 
 **所有子图提取调用必须传入 `cutoff_time`，函数内部断言过滤**。违反此规则的代码视为严重错误，立即停止并修复。
+
+### 实验规范模板 [MUST]
+
+所有在线仿真实验的**指标定义、跨数据集对比表格格式、out_dir 命名规范、PROGRESS.md 条目格式**均遵循：
+
+> **`docs/EXPERIMENT_TEMPLATE.md`**（规范文件，只读参考）
+
+启动任何实验前须先执行 **Pre-flight Checklist**（见下节）。
+
+### Pre-flight Checklist [BLOCKING]
+
+每次启动实验前按顺序检查，任一项失败则停止并修复：
+
+1. **smoke test**：用最小数据集（或 `rounds=1`）跑 1 轮，确认脚本能正常运行到底。
+2. **out_dir 唯一性**：确认目标 `out_dir` 不存在；若存在，更新时间戳或 variant 标签。
+3. **编码环境**：确认 `PYTHONIOENCODING=utf-8` 已设置（`echo $env:PYTHONIOENCODING`）。
+4. **GPU 可用性**：确认 `torch.cuda.is_available()` 返回 `True`（若需要 GPU）。
+5. **首轮指标合理性**：第 1 轮完成后检查 MRR 不为 `1.0`、coverage 不为 `0.0` 或 `1.0`；异常立即停止。
+
+可用 `/preflight` 命令自动执行上述检查。
 
 ---
 

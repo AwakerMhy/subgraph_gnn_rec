@@ -140,6 +140,7 @@ class DCSBMGenerator(GeneratorBase):
 
         df = pd.DataFrame(edges, columns=["src", "dst", "timestamp"])
         df = df.sort_values("timestamp").reset_index(drop=True)
+        print(f"[DCSBMGenerator] 生成完成：{self.n_nodes} 节点，{len(df)} 边")
         return df
 
     def get_node_features(self) -> np.ndarray:

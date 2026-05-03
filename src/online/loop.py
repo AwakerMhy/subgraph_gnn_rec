@@ -113,6 +113,14 @@ def _score_heuristic(
     return scores
 
 
+def _build_optimizer(model: torch.nn.Module, trainer_cfg: dict) -> torch.optim.Optimizer:
+    opt_name = trainer_cfg.get("optimizer", "adam").lower()
+    lr = trainer_cfg.get("lr", 1e-3)
+    if opt_name == "sgd":
+        return torch.optim.SGD(model.parameters(), lr=lr, momentum=trainer_cfg.get("momentum", 0.9))
+    return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=trainer_cfg.get("weight_decay", 0.0))
+
+
 def run_online_simulation(cfg: dict) -> pd.DataFrame:
     """执行在线学习仿真，返回 per-round 指标 DataFrame。"""
     seed = cfg.get("runtime", {}).get("seed", 42)
@@ -193,7 +201,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             emb_dim=model_cfg.get("emb_dim", 64),
             hidden_dim=model_cfg.get("hidden_dim", 64),
         ).to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        optimizer = _build_optimizer(model, trainer_cfg)
         sched_cfg = trainer_cfg.get("scheduler", {})
         scheduler = build_scheduler(
             optimizer,
@@ -208,7 +216,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         from src.baseline.mlp_link import MLPLinkScorer, extract_topo_features  # noqa: PLC0415
         _mlp_topo_dim = 3 + node_feat_dim
         model = MLPLinkScorer(in_dim=_mlp_topo_dim, hidden_dim=model_cfg.get("hidden_dim", 64)).to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        optimizer = _build_optimizer(model, trainer_cfg)
         sched_cfg = trainer_cfg.get("scheduler", {})
         scheduler = build_scheduler(
             optimizer,
@@ -228,12 +236,13 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         model = LinkPredModel(
             hidden_dim=model_cfg.get("hidden_dim", 64),
             num_layers=model_cfg.get("num_layers", 3),
+            scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
             encoder_type=model_cfg.get("encoder_type", "last"),
             node_feat_dim=node_feat_dim,
             n_nodes=n_nodes,
             node_emb_dim=model_cfg.get("node_emb_dim", 0),
         ).to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=trainer_cfg.get("lr", 1e-3))
+        optimizer = _build_optimizer(model, trainer_cfg)
         sched_cfg = trainer_cfg.get("scheduler", {})
         scheduler = build_scheduler(
             optimizer,
@@ -330,10 +339,11 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             }
 
         # ── Phase 3：构建推荐（top-K 精排） ─────────────────────────────────
-        # ε-greedy：线性衰减，round 0 时 ε=epsilon_start，末轮时 ε=epsilon_end
-        _eps_start = trainer_cfg.get("epsilon_start", 0.0)
-        _eps_end   = trainer_cfg.get("epsilon_end",   0.0)
-        _eps_t = _eps_end + (_eps_start - _eps_end) * max(0.0, 1.0 - t / max(total_rounds - 1, 1))
+        # 探索策略：exploit_ratio 控制 GNN top-k 保留比例，剩余从尾部候选随机补入
+        # exploit_ratio=1.0 表示纯利用（默认），<1.0 时强制探索尾部候选
+        _exploit_ratio = trainer_cfg.get("exploit_ratio", 1.0)
+        _exploit_k = max(1, int(top_k_rec * _exploit_ratio))   # GNN 保留位数
+        _explore_k = top_k_rec - _exploit_k                    # 随机探索位数
         for u in U:
             cand_nodes = user_cand_nodes[u]
             if not cand_nodes:
@@ -373,12 +383,15 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 scores = heuristic_scores.get(u, [0.0] * len(cand_nodes))
             else:
                 scores = gnn_score_map.get(u, [0.0] * len(cand_nodes))
-            if _eps_t > 0.0 and _rng.random() < _eps_t:
-                perm = _rng.permutation(len(cand_nodes))[:top_k_rec]
-                recs[u] = [cand_nodes[int(i)] for i in perm]
+            order = np.argsort(scores)[::-1]
+            exploit_idx = order[:_exploit_k].tolist()
+            if _explore_k > 0 and len(order) > _exploit_k:
+                tail_idx = order[_exploit_k:]  # GNN 未选中的候选
+                chosen = _rng.choice(len(tail_idx), min(_explore_k, len(tail_idx)), replace=False)
+                explore_idx = tail_idx[chosen].tolist()
             else:
-                order = np.argsort(scores)[::-1][:top_k_rec]
-                recs[u] = [cand_nodes[i] for i in order]
+                explore_idx = []
+            recs[u] = [cand_nodes[i] for i in exploit_idx + explore_idx]
 
         feedback = env.step(recs, t)
 

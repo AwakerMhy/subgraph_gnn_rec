@@ -3,17 +3,19 @@ C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyW
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
 [preprocess] 删除 412 个孤立节点，剩余 19588 个节点
-Traceback (most recent call last):
-  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 21, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 285, in run_online_simulation
-    recall.precompute_for_users(list(U))
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\recall\heuristic.py", line 117, in precompute_for_users
-    CN_dense = np.asarray(CN.todense(), dtype=np.float32)
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 959, in todense
-    return self._ascontainer(self.toarray(order=order, out=out))
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_compressed.py", line 1106, in toarray
-    out = self._process_toarray_args(order, out)
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 1327, in _process_toarray_args
-    return np.zeros(self.shape, dtype=self.dtype, order=order)
-numpy._core._exceptions._ArrayMemoryError: Unable to allocate 73.2 MiB for an array with shape (979, 19588) and data type float32
+Round    1/100  coverage=0.0505  prec@K=0.0010  accepted=10  loss=nan  (1.2s)
+Round    2/100  coverage=0.0510  prec@K=0.0010  accepted=10  loss=nan  (1.3s)
+Round    3/100  coverage=0.0515  prec@K=0.0010  accepted=10  loss=nan  (1.7s)
+Round    4/100  coverage=0.0520  prec@K=0.0010  accepted=10  loss=nan  (2.2s)
+Round    5/100  coverage=0.0525  prec@K=0.0010  accepted=10  loss=nan  (2.8s)
+Round    6/100  coverage=0.0530  prec@K=0.0010  accepted=10  loss=nan  (3.3s)
+Round    7/100  coverage=0.0535  prec@K=0.0010  accepted=10  loss=nan  (4.5s)
+Round    8/100  coverage=0.0541  prec@K=0.0011  accepted=11  loss=nan  (5.4s)
+Round    9/100  coverage=0.0546  prec@K=0.0010  accepted=10  loss=nan  (6.0s)
+Round   10/100  coverage=0.0551  prec@K=0.0010  accepted=10  loss=nan  (7.2s)
+Round   11/100  coverage=0.0556  prec@K=0.0010  accepted=10  loss=nan  (7.8s)
+Round   12/100  coverage=0.0561  prec@K=0.0010  accepted=10  loss=nan  (7.8s)
+Round   13/100  coverage=0.0566  prec@K=0.0010  accepted=10  loss=nan  (8.9s)
+Round   14/100  coverage=0.0571  prec@K=0.0010  accepted=10  loss=nan  (9.6s)
+Round   15/100  coverage=0.0576  prec@K=0.0010  accepted=10  loss=nan  (10.6s)
+Round   16/100  coverage=0.0581  prec@K=0.0010  accepted=10  loss=nan  (15.7s)

@@ -86,7 +86,7 @@ def make_cfg(dataset_name: str, dataset_path: str | None, model_type: str, init_
             "p_pos": 1.0,
         },
         "init_edge_ratio": init_ratio,
-        "init_strategy": "stratified",
+        "init_strategy": "random",
         "model": model_cfg,
         "recall": {"method": "two_hop_random", "top_k_recall": 100},
         "recommend": {"cold_start_random_fill": True, "top_k": 10},
@@ -102,7 +102,7 @@ def make_cfg(dataset_name: str, dataset_path: str | None, model_type: str, init_
         "user_selector": {
             "alpha": 0.5, "beta": 2.0, "gamma": 2.0,
             "lam": 0.1, "sample_ratio": 0.1,
-            "strategy": "composite", "w": 3,
+            "strategy": "uniform", "w": 3,
         },
     }
 

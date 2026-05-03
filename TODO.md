@@ -66,10 +66,7 @@
 - [ ] 消融实验：`--first_time_only` on/off 对比
 - [ ] 消融实验：召回策略 CN vs AA vs union 对比
 - [ ] `simulated_recall` 协议全数据集正式实验（bitcoin_otc / email_eu / dnc_email…）
-- [ ] **encoder_type 消融**：GIN-last vs GIN-layer_concat vs GIN-layer_sum 效果对比
-  - 固定：CollegeMsg × ego_cn × simulated_recall × hidden_dim=64 × seed=42
-  - 参数：`--encoder_type last | layer_concat | layer_sum`
-  - 指标：val MRR / Hits@10
+- [x] **encoder_type 消融**：已完成（见 PROGRESS.md）— last=0.2001, concat=0.2171, sum=0.2176；结论：concat/sum 均优于 last，默认沿用 layer_sum
 
 ## Phase 7：分析与可视化
 
@@ -81,27 +78,9 @@
 
 ## 性能优化任务
 
-### 离线子图缓存（训练提速，优先级：高）
+### 离线子图缓存（训练提速）
 
-**背景**：当前训练慢的根因是每个样本在 `collate_fn` 里都做一次 O(E) 的 DataFrame 全表扫描 + 邻接表重建（`subgraph.py` 慢路径），且没有跨 epoch 缓存，30 epoch 重复计算 30 次。
-
-**方案**：在训练开始前一次性提取所有 `(u, v, cutoff_time)` 对应子图并存到磁盘，之后每个 epoch 直接读缓存。`cache_subgraphs()` / `load_cached_subgraphs()` 工具已在 `subgraph.py:241` 实现，只需接入训练流程。
-
-**磁盘估算**：
-- 当前 `--max_samples 2000` 实验：~25 MB
-- 全量三数据集（含 val）：~1.1 GB
-
-**预计加速**：10~30×（消除 N×E 重复计算）
-
-**实现要点**（约 30 行改动）：
-1. `train.py`：`build_model` 之前检查缓存是否存在，不存在则调 `cache_subgraphs()`
-2. `LinkPredDataset.__init__`：改为加载缓存图列表，`__getitem__` 返回 `(DGLGraph, label)`
-3. `collate_fn`：改为只做 `dgl.batch`，不再调 `extract_subgraph`
-4. 缓存键：`dataset_name + split + max_hop + max_neighbors + neg_ratio`
-
-**其他可选优化**（次优先级）：
-- 把子图提取移入 `__getitem__` + `num_workers≥4`（Windows 上有多进程坑，暂缓）
-- `--max_hop 1` 消融：子图缩减约 10×，先验证 1-hop AUC 是否足够
+> ⚠️ superseded（2026-05-02）：小图（n<5000）磁盘缓存已证明不可用（college_msg 单份 12GB，见 MISTAKES.md）。当前方案为 TimeAdjacency 内存方案，性能已足够。大图（n>50k）条件性启用仍可探索，但非当前优先级。
 
 ---
 

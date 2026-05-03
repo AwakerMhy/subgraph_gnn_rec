@@ -236,6 +236,69 @@ class RecallDataset(Dataset):
         return self.samples[idx]
 
 
+class EgoCNOfflineDataset(Dataset):
+    """ego_cn_offline 协议数据集。
+
+    正样本：E_hidden 中存在的边 (u→v)。
+    负样本：(u→v) 满足 (u,v) ∉ exclusion_pairs，其中
+        exclusion_pairs = E_obs pairs ∪ E_hidden pairs（当前切分期）。
+    每个样本：(u, v, cutoff_time, label, query_id)，兼容 collate_fn 和 eval_mrr_epoch。
+    """
+
+    def __init__(
+        self,
+        hidden_edges: pd.DataFrame,
+        exclusion_pairs: set[tuple[int, int]],
+        n_nodes: int,
+        cutoff_time: float,
+        neg_ratio: int = 1,
+        seed: int = 42,
+        max_samples: int = 0,
+    ) -> None:
+        self.samples: list[tuple] = []
+        self._build(hidden_edges, exclusion_pairs, n_nodes, cutoff_time, neg_ratio, seed, max_samples)
+
+    def _build(self, hidden_edges, exclusion_pairs, n_nodes, cutoff_time, neg_ratio, seed, max_samples):
+        rng = np.random.default_rng(seed)
+
+        # 按 u 分组收集正样本
+        pos_by_u: dict[int, list[int]] = {}
+        for u, v in zip(hidden_edges["src"].tolist(), hidden_edges["dst"].tolist()):
+            pos_by_u.setdefault(int(u), []).append(int(v))
+
+        all_nodes = list(range(n_nodes))
+        query_id = 0
+
+        for u, pos_vs in pos_by_u.items():
+            if max_samples > 0 and len(self.samples) >= max_samples:
+                break
+
+            n_neg = len(pos_vs) * neg_ratio
+            negatives: list[int] = []
+            attempts = 0
+            max_attempts = n_neg * 200
+            while len(negatives) < n_neg and attempts < max_attempts:
+                v_neg = int(rng.integers(0, n_nodes))
+                if v_neg != u and (u, v_neg) not in exclusion_pairs:
+                    negatives.append(v_neg)
+                attempts += 1
+
+            if not pos_vs or not negatives:
+                continue
+
+            for v in pos_vs:
+                self.samples.append((u, v, cutoff_time, 1, query_id))
+            for v in negatives:
+                self.samples.append((u, v, cutoff_time, 0, query_id))
+            query_id += 1
+
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    def __getitem__(self, idx: int) -> tuple:
+        return self.samples[idx]
+
+
 def collate_fn(
     batch: list[tuple],
     all_edges: pd.DataFrame,
@@ -606,6 +669,175 @@ def _run_simulated_recall(
     print(f"训练完成。最佳 val MRR: {best_val_mrr:.4f}  checkpoint: {ckpt_path}")
 
 
+# ── ego_cn_offline 协议实现 ───────────────────────────────────────────────────
+
+def _run_ego_cn_offline(
+    args: argparse.Namespace,
+    edges: pd.DataFrame,
+    n_nodes: int,
+    node_feat: "torch.Tensor | None",
+    node_feat_dim: int,
+    device: torch.device,
+) -> None:
+    """ego_cn_offline 协议完整训练流程。
+
+    切分：70% E_obs / 中15% 训练 / 后15% 测试。
+    正样本：E_hidden 中存在的边；负样本：排除 E_obs ∪ E_hidden 后随机采样。
+    子图：ego_cn，背景图始终为 E_obs（TimeAdjacency）。
+    """
+    from src.graph.edge_split import temporal_mask_split
+
+    # 首次边过滤（可选）
+    if args.first_time_only:
+        edges = filter_first_time_edges(edges)
+        print(f"首次边过滤后: {len(edges)} 条边", flush=True)
+
+    # 70/15/15 时间切分
+    split = temporal_mask_split(edges)
+    E_obs        = split.E_obs
+    E_hidden_tr  = split.E_hidden_val   # 中15%，训练集
+    E_hidden_te  = split.E_hidden_test  # 后15%，测试集
+    print(
+        f"切分: E_obs={len(E_obs)}  train={len(E_hidden_tr)}  test={len(E_hidden_te)}",
+        flush=True,
+    )
+
+    # 反泄露断言
+    obs_pairs = set(zip(E_obs["src"].tolist(), E_obs["dst"].tolist()))
+    htr_pairs = set(zip(E_hidden_tr["src"].tolist(), E_hidden_tr["dst"].tolist()))
+    hte_pairs = set(zip(E_hidden_te["src"].tolist(), E_hidden_te["dst"].tolist()))
+    assert obs_pairs.isdisjoint(htr_pairs), "E_obs ∩ E_hidden_tr ≠ ∅ — 数据泄露！"
+    assert obs_pairs.isdisjoint(hte_pairs), "E_obs ∩ E_hidden_te ≠ ∅ — 数据泄露！"
+
+    # 训练背景图：E_obs（前70%）
+    # 测试背景图：E_obs ∪ E_hidden_tr（前85%）——测试时中15%已写入网络
+    print("构建时序邻接表（训练背景: E_obs）...", flush=True)
+    time_adj_tr = TimeAdjacency(E_obs)
+    print("构建时序邻接表（测试背景: E_obs ∪ 中15%）...", flush=True)
+    E_obs_plus_tr = pd.concat([E_obs, E_hidden_tr], ignore_index=True).sort_values("timestamp")
+    time_adj_te = TimeAdjacency(E_obs_plus_tr)
+    print("时序邻接表构建完成", flush=True)
+
+    # cutoff_time = 2.0：高于所有归一化时间戳（[0,1]），确保 TimeAdjacency 内全量边可见
+    _CUTOFF = 2.0
+
+    # 构建排除集：负样本不得出现在 E_obs 或当前切分期 E_hidden 中
+    train_excl = obs_pairs | htr_pairs
+    test_excl  = obs_pairs | htr_pairs | hte_pairs  # 测试负样本额外排除中15%
+
+    print("构建训练集...", flush=True)
+    train_ds = EgoCNOfflineDataset(
+        hidden_edges=E_hidden_tr,
+        exclusion_pairs=train_excl,
+        n_nodes=n_nodes,
+        cutoff_time=_CUTOFF,
+        neg_ratio=args.neg_ratio,
+        seed=args.seed,
+        max_samples=args.max_samples,
+    )
+    print(f"训练集 {len(train_ds)} 样本", flush=True)
+
+    print("构建测试集...", flush=True)
+    test_ds = EgoCNOfflineDataset(
+        hidden_edges=E_hidden_te,
+        exclusion_pairs=test_excl,
+        n_nodes=n_nodes,
+        cutoff_time=_CUTOFF,
+        neg_ratio=args.neg_ratio,
+        seed=args.seed + 1,
+        max_samples=args.max_samples,
+    )
+    print(f"测试集 {len(test_ds)} 样本", flush=True)
+
+    if len(train_ds) == 0 or len(test_ds) == 0:
+        print("警告：训练集或测试集为空，检查数据集配置", flush=True)
+        return
+
+    # collate_fn=lambda: 透传原始 tuple 列表，由训练循环 / eval_mrr_epoch 自行调用 collate_fn
+    _passthrough = lambda batch: batch  # noqa: E731
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
+                              collate_fn=_passthrough, num_workers=0)
+    test_loader  = DataLoader(test_ds,  batch_size=args.batch_size, shuffle=False,
+                              collate_fn=_passthrough, num_workers=0)
+
+    # 模型与优化器
+    model = build_model(args, node_feat_dim=node_feat_dim).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
+                                 weight_decay=args.weight_decay)
+    criterion = nn.BCELoss()
+
+    # 结果目录
+    run_dir = Path("results/offline_ego_cn") / args.run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    ckpt_path = run_dir / "best.pt"
+    log_records: list[dict] = []
+    best_test_mrr = 0.0
+
+    print(f"开始训练，共 {args.epochs} epoch，设备: {device}", flush=True)
+
+    for epoch in range(1, args.epochs + 1):
+        t0 = time.time()
+        model.train()
+        total_loss, total_auc = 0.0, 0.0
+        n_batches = 0
+
+        for batch in train_loader:
+            bg, labels, _, _ = collate_fn(
+                batch, E_obs,
+                max_hop=args.max_hop, max_neighbors=args.max_neighbors, seed=args.seed,
+                time_adj=time_adj_tr, node_feat=node_feat, subgraph_type="ego_cn",
+            )
+            if bg is None:
+                continue
+            bg = bg.to(device)
+            labels_f = labels.float().to(device)
+            scores = model.forward_batch(bg)
+            loss = criterion(scores, labels_f)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+            auc = compute_auc(
+                labels.numpy(),
+                scores.detach().cpu().numpy(),
+            )
+            total_auc += auc
+            n_batches += 1
+
+        tr_loss = total_loss / max(n_batches, 1)
+        tr_auc  = total_auc  / max(n_batches, 1)
+
+        # 测试集 MRR（每 epoch 评估，小数据集可接受；大数据集可改为每 N epoch）
+        test_metrics = eval_mrr_epoch(
+            model, test_loader, device, E_obs_plus_tr,
+            max_hop=args.max_hop, max_neighbors=args.max_neighbors,
+            seed=args.seed, time_adj=time_adj_te, node_feat=node_feat,
+            k_list=[5, 10, 20], subgraph_type="ego_cn",
+        )
+        test_mrr = test_metrics.get("mrr", 0.0)
+
+        elapsed = time.time() - t0
+        metrics_str = "  ".join(f"{k}={v:.4f}" for k, v in test_metrics.items())
+        print(
+            f"Epoch {epoch:3d}/{args.epochs}  loss={tr_loss:.4f}  tr_auc={tr_auc:.4f}  "
+            f"{metrics_str}  ({elapsed:.1f}s)",
+            flush=True,
+        )
+
+        rec = {"epoch": epoch, "tr_loss": tr_loss, "tr_auc": tr_auc, **test_metrics}
+        log_records.append(rec)
+        with open(run_dir / "train.json", "w") as f:
+            json.dump(log_records, f, indent=2)
+
+        if test_mrr > best_test_mrr:
+            best_test_mrr = test_mrr
+            torch.save({"epoch": epoch, "model": model.state_dict(),
+                        "test_mrr": test_mrr, **test_metrics}, ckpt_path)
+
+    print(f"训练完成。最佳 test MRR: {best_test_mrr:.4f}  checkpoint: {ckpt_path}")
+
+
 # ── 主函数 ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -643,8 +875,8 @@ def main() -> None:
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     # ── simulated_recall 协议参数 ──────────────────────────────────────────────
     parser.add_argument("--protocol", type=str, default="legacy",
-                        choices=["legacy", "simulated_recall"],
-                        help="训练协议：legacy（旧协议）或 simulated_recall（新协议）")
+                        choices=["legacy", "simulated_recall", "ego_cn_offline"],
+                        help="训练协议：legacy / simulated_recall / ego_cn_offline")
     parser.add_argument("--first_time_only", action="store_true",
                         help="是否过滤为首次边（每 (u,v) 对只保留最早一条）")
     parser.add_argument("--edge_split_strategy", type=str, default="temporal",
@@ -708,6 +940,11 @@ def main() -> None:
     # ── simulated_recall 协议分支 ─────────────────────────────────────────────
     if args.protocol == "simulated_recall":
         _run_simulated_recall(args, edges, n_nodes, node_feat, node_feat_dim, device)
+        return
+
+    # ── ego_cn_offline 协议分支 ───────────────────────────────────────────────
+    if args.protocol == "ego_cn_offline":
+        _run_ego_cn_offline(args, edges, n_nodes, node_feat, node_feat_dim, device)
         return
 
     # ── 构建 TimeAdjacency（一次性预构建，供所有 epoch 复用）──────────────────

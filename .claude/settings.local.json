@@ -62,7 +62,15 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "PowerShell(Get-WmiObject *)",
       "PowerShell(Stop-Process *)",
-      "PowerShell(taskkill *)"
+      "PowerShell(taskkill *)",
+      "PowerShell(conda run *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/run_init_ratio_sweep.py 2>&1 | Select-Object -First 5)",
+      "Bash(Get-Content \"C:\\\\Users\\\\12143\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-12143-Desktop-pythonProject-gnn\\\\ef4d0727-0463-4aca-923f-15cb9fa07b50\\\\tasks\\\\bdz21fj2c.output\" -Wait)",
+      "Bash(Select-String -Pattern \"\\\\[OK\\\\]|\\\\[ERR\\\\]|全部完成|Error|Traceback\")",
+      "PowerShell(Get-Process *)",
+      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/run_init_ratio_sweep.py 2>&1 | Select-Object -First 3)"
     ]
   }
 }

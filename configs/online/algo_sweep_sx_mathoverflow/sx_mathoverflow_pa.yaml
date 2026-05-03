@@ -15,7 +15,7 @@ feedback:
   p_neg: 0.0
   p_pos: 1.0
 init_edge_ratio: 0.25
-init_strategy: stratified
+init_strategy: random
 model:
   type: pa
 recall:
@@ -30,9 +30,9 @@ replay:
 runtime:
   device: cpu
   log_every: 1
-  out_dir: results/online/algo_sweep_sx_mathoverflow/sx_mathoverflow_pa
+  out_dir: results/online/algo_sweep_sx_mathoverflow_v2/sx_mathoverflow_pa
   seed: 42
-total_rounds: 100
+total_rounds: 30
 trainer:
   batch_subgraph_max_hop: 2
   grad_clip: 1.0
@@ -49,6 +49,6 @@ user_selector:
   beta: 2.0
   gamma: 2.0
   lam: 0.1
-  sample_ratio: 0.03
-  strategy: composite
+  sample_ratio: 0.01
+  strategy: uniform
   w: 3

@@ -1,16 +1,111 @@
-Traceback (most recent call last):
-  File "C:\Users\12143\Desktop\pythonProject\gnn\scripts\run_online_sim_win.py", line 12, in <module>
-    from src.online.loop import run_online_simulation
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 8, in <module>
-    import dgl  # noqa: F401 — 先于 numpy/torch 导入，触发 Windows DLL 目录注册
-  File "C:\conda\envs\gnn\lib\site-packages\dgl\__init__.py", line 14, in <module>
-    from .backend import backend_name, load_backend  # usort: skip
-  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 122, in <module>
-    load_backend(get_preferred_backend())
-  File "C:\conda\envs\gnn\lib\site-packages\dgl\backend\__init__.py", line 37, in load_backend
-    import torch
-  File "C:\conda\envs\gnn\lib\site-packages\torch\__init__.py", line 285, in <module>
-    _load_dll_libraries()
-  File "C:\conda\envs\gnn\lib\site-packages\torch\__init__.py", line 268, in _load_dll_libraries
-    raise err
-OSError: [WinError 1455] 页面文件太小，无法完成操作。 Error loading "C:\conda\envs\gnn\lib\site-packages\torch\lib\caffe2_nvrtc.dll" or one of its dependencies.
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+[preprocess] 删除 412 个孤立节点，剩余 19588 个节点
+C:\conda\envs\gnn\lib\site-packages\dgl\backend\pytorch\sparse.py:157: FutureWarning: `torch.cuda.amp.autocast_mode._cast(value, dtype)` is deprecated. Please use `torch.amp.autocast_mode._cast(value, 'cuda', dtype)` instead.
+  return th.cuda.amp.autocast_mode._cast(
+C:\conda\envs\gnn\lib\site-packages\dgl\backend\pytorch\sparse.py:148: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  return th.cuda.amp.autocast(enabled=False)
+Round    1/100  coverage=0.0510  prec@K=0.0010  accepted=20  loss=0.7501  (3.3s)
+Round    2/100  coverage=0.0520  prec@K=0.0010  accepted=20  loss=0.7495  (3.3s)
+Round    3/100  coverage=0.0530  prec@K=0.0010  accepted=20  loss=0.7488  (4.2s)
+Round    4/100  coverage=0.0540  prec@K=0.0010  accepted=20  loss=0.7474  (5.6s)
+Round    5/100  coverage=0.0550  prec@K=0.0010  accepted=20  loss=0.7455  (8.3s)
+Round    6/100  coverage=0.0560  prec@K=0.0010  accepted=20  loss=0.7432  (10.4s)
+Round    7/100  coverage=0.0570  prec@K=0.0010  accepted=20  loss=0.7409  (12.9s)
+Round    8/100  coverage=0.0580  prec@K=0.0010  accepted=20  loss=0.7385  (15.1s)
+Round    9/100  coverage=0.0591  prec@K=0.0010  accepted=20  loss=0.7363  (17.9s)
+Round   10/100  coverage=0.0601  prec@K=0.0010  accepted=20  loss=0.7339  (20.5s)
+Round   11/100  coverage=0.0611  prec@K=0.0010  accepted=20  loss=0.7317  (22.6s)
+Round   12/100  coverage=0.0621  prec@K=0.0010  accepted=20  loss=0.7295  (25.4s)
+Round   13/100  coverage=0.0631  prec@K=0.0010  accepted=20  loss=0.7276  (27.5s)
+Round   14/100  coverage=0.0641  prec@K=0.0010  accepted=20  loss=0.7256  (30.4s)
+Round   15/100  coverage=0.0651  prec@K=0.0010  accepted=20  loss=0.7236  (33.1s)
+Round   16/100  coverage=0.0661  prec@K=0.0010  accepted=20  loss=0.7214  (35.7s)
+Round   17/100  coverage=0.0671  prec@K=0.0010  accepted=20  loss=0.7194  (37.9s)
+Round   18/100  coverage=0.0681  prec@K=0.0010  accepted=20  loss=0.7175  (41.0s)
+Round   19/100  coverage=0.0682  prec@K=0.0001  accepted=1  loss=0.7156  (43.3s)
+Round   20/100  coverage=0.0692  prec@K=0.0010  accepted=20  loss=0.7140  (45.7s)
+Round   21/100  coverage=0.0702  prec@K=0.0010  accepted=20  loss=0.7126  (48.3s)
+Round   22/100  coverage=0.0712  prec@K=0.0010  accepted=20  loss=0.7114  (50.9s)
+Round   23/100  coverage=0.0713  prec@K=0.0001  accepted=1  loss=0.7102  (53.2s)
+Round   24/100  coverage=0.0723  prec@K=0.0010  accepted=20  loss=0.7094  (55.1s)
+Round   25/100  coverage=0.0733  prec@K=0.0010  accepted=20  loss=0.7087  (58.5s)
+Round   26/100  coverage=0.0743  prec@K=0.0010  accepted=20  loss=0.7083  (62.2s)
+Round   27/100  coverage=0.0753  prec@K=0.0010  accepted=20  loss=0.7079  (63.7s)
+Round   28/100  coverage=0.0763  prec@K=0.0010  accepted=20  loss=0.7077  (66.1s)
+Round   29/100  coverage=0.0764  prec@K=0.0001  accepted=1  loss=0.7076  (68.2s)
+Round   30/100  coverage=0.0774  prec@K=0.0010  accepted=20  loss=0.7076  (70.7s)
+Round   31/100  coverage=0.0784  prec@K=0.0010  accepted=20  loss=0.7076  (73.2s)
+Round   32/100  coverage=0.0794  prec@K=0.0010  accepted=20  loss=0.7035  (75.5s)
+Round   33/100  coverage=0.0804  prec@K=0.0010  accepted=20  loss=0.6993  (77.7s)
+Round   34/100  coverage=0.0814  prec@K=0.0010  accepted=20  loss=0.6951  (80.6s)
+Round   35/100  coverage=0.0824  prec@K=0.0010  accepted=20  loss=0.6909  (82.6s)
+Round   36/100  coverage=0.0834  prec@K=0.0010  accepted=20  loss=0.6866  (84.8s)
+Round   37/100  coverage=0.0844  prec@K=0.0010  accepted=20  loss=0.6822  (86.9s)
+Round   38/100  coverage=0.0855  prec@K=0.0010  accepted=20  loss=0.6777  (89.9s)
+Round   39/100  coverage=0.0865  prec@K=0.0010  accepted=20  loss=0.6730  (91.9s)
+Round   40/100  coverage=0.0875  prec@K=0.0010  accepted=20  loss=0.6687  (94.6s)
+Round   41/100  coverage=0.0885  prec@K=0.0010  accepted=20  loss=0.6645  (98.9s)
+Round   42/100  coverage=0.0895  prec@K=0.0010  accepted=20  loss=0.6608  (102.1s)
+Round   43/100  coverage=0.0905  prec@K=0.0010  accepted=20  loss=0.6574  (103.1s)
+Round   44/100  coverage=0.0915  prec@K=0.0010  accepted=20  loss=0.6537  (106.0s)
+Round   45/100  coverage=0.0925  prec@K=0.0010  accepted=20  loss=0.6508  (109.1s)
+Round   46/100  coverage=0.0935  prec@K=0.0010  accepted=20  loss=0.6479  (112.4s)
+Round   47/100  coverage=0.0945  prec@K=0.0010  accepted=20  loss=0.6459  (113.8s)
+Round   48/100  coverage=0.0955  prec@K=0.0010  accepted=20  loss=0.6441  (115.8s)
+Round   49/100  coverage=0.0966  prec@K=0.0010  accepted=20  loss=0.6423  (120.4s)
+Round   50/100  coverage=0.0976  prec@K=0.0010  accepted=20  loss=0.6415  (123.6s)
+Round   51/100  coverage=0.0986  prec@K=0.0010  accepted=20  loss=0.6406  (128.2s)
+Round   52/100  coverage=0.0996  prec@K=0.0010  accepted=20  loss=0.6398  (126.7s)
+Round   53/100  coverage=0.1006  prec@K=0.0010  accepted=20  loss=0.6395  (121.2s)
+Round   54/100  coverage=0.1016  prec@K=0.0010  accepted=20  loss=0.6390  (123.8s)
+Round   55/100  coverage=0.1026  prec@K=0.0010  accepted=20  loss=0.6393  (126.1s)
+Round   56/100  coverage=0.1036  prec@K=0.0010  accepted=20  loss=0.6396  (129.9s)
+Round   57/100  coverage=0.1046  prec@K=0.0010  accepted=20  loss=0.6319  (131.2s)
+Round   58/100  coverage=0.1056  prec@K=0.0010  accepted=20  loss=0.6262  (133.8s)
+Round   59/100  coverage=0.1067  prec@K=0.0010  accepted=20  loss=0.6186  (135.9s)
+Round   60/100  coverage=0.1077  prec@K=0.0010  accepted=20  loss=0.6117  (138.0s)
+Round   61/100  coverage=0.1087  prec@K=0.0010  accepted=20  loss=0.6048  (140.7s)
+Round   62/100  coverage=0.1097  prec@K=0.0010  accepted=20  loss=0.5980  (122.2s)
+Round   63/100  coverage=0.1107  prec@K=0.0010  accepted=20  loss=0.5912  (126.0s)
+Round   64/100  coverage=0.1117  prec@K=0.0010  accepted=20  loss=0.5849  (127.8s)
+Round   65/100  coverage=0.1127  prec@K=0.0010  accepted=20  loss=0.5784  (130.0s)
+Round   66/100  coverage=0.1137  prec@K=0.0010  accepted=20  loss=0.5729  (132.7s)
+Round   67/100  coverage=0.1147  prec@K=0.0010  accepted=20  loss=0.5678  (135.1s)
+Round   68/100  coverage=0.1157  prec@K=0.0010  accepted=20  loss=0.5628  (137.9s)
+Round   69/100  coverage=0.1167  prec@K=0.0010  accepted=20  loss=0.5590  (141.2s)
+Round   70/100  coverage=0.1178  prec@K=0.0010  accepted=20  loss=0.5543  (143.0s)
+Round   71/100  coverage=0.1188  prec@K=0.0010  accepted=20  loss=0.5508  (145.4s)
+Round   72/100  coverage=0.1198  prec@K=0.0010  accepted=20  loss=0.5490  (125.7s)
+Round   73/100  coverage=0.1208  prec@K=0.0010  accepted=20  loss=0.5463  (128.1s)
+Round   74/100  coverage=0.1218  prec@K=0.0010  accepted=20  loss=0.5442  (131.1s)
+Round   75/100  coverage=0.1228  prec@K=0.0010  accepted=20  loss=0.5429  (133.2s)
+Round   76/100  coverage=0.1238  prec@K=0.0010  accepted=20  loss=0.5427  (136.2s)
+Round   77/100  coverage=0.1248  prec@K=0.0010  accepted=20  loss=0.5406  (138.4s)
+Round   78/100  coverage=0.1258  prec@K=0.0010  accepted=20  loss=0.5407  (142.0s)
+Round   79/100  coverage=0.1268  prec@K=0.0010  accepted=20  loss=0.5395  (143.8s)
+Round   80/100  coverage=0.1269  prec@K=0.0001  accepted=1  loss=0.5410  (146.2s)
+Round   81/100  coverage=0.1279  prec@K=0.0010  accepted=20  loss=0.5403  (149.7s)
+Round   82/100  coverage=0.1289  prec@K=0.0010  accepted=20  loss=0.5311  (129.7s)
+Round   83/100  coverage=0.1299  prec@K=0.0010  accepted=20  loss=0.5238  (132.2s)
+Round   84/100  coverage=0.1309  prec@K=0.0010  accepted=20  loss=0.5154  (134.5s)
+Round   85/100  coverage=0.1319  prec@K=0.0010  accepted=20  loss=0.5065  (136.9s)
+Round   86/100  coverage=0.1329  prec@K=0.0010  accepted=20  loss=0.4989  (139.0s)
+Round   87/100  coverage=0.1340  prec@K=0.0011  accepted=21  loss=0.4909  (141.7s)
+Round   88/100  coverage=0.1350  prec@K=0.0010  accepted=20  loss=0.4819  (145.0s)
+Round   89/100  coverage=0.1360  prec@K=0.0010  accepted=20  loss=0.4753  (148.2s)
+Round   90/100  coverage=0.1370  prec@K=0.0010  accepted=20  loss=0.4685  (150.9s)
+Round   91/100  coverage=0.1380  prec@K=0.0010  accepted=20  loss=0.4609  (153.9s)
+Round   92/100  coverage=0.1391  prec@K=0.0010  accepted=20  loss=0.4565  (133.2s)
+Round   93/100  coverage=0.1401  prec@K=0.0010  accepted=20  loss=0.4500  (135.6s)
+Round   94/100  coverage=0.1411  prec@K=0.0010  accepted=20  loss=0.4455  (138.0s)
+Round   95/100  coverage=0.1421  prec@K=0.0010  accepted=20  loss=0.4408  (140.2s)
+Round   96/100  coverage=0.1431  prec@K=0.0010  accepted=20  loss=0.4355  (143.2s)
+Round   97/100  coverage=0.1441  prec@K=0.0010  accepted=20  loss=0.4348  (145.6s)
+Round   98/100  coverage=0.1451  prec@K=0.0010  accepted=20  loss=0.4314  (147.8s)
+Round   99/100  coverage=0.1461  prec@K=0.0010  accepted=20  loss=0.4294  (150.4s)
+Round  100/100  coverage=0.1471  prec@K=0.0010  accepted=20  loss=0.4263  (152.7s)
+
+结果已写入 results\online\sbm20k_v2_gnn_node_emb_topk20/rounds.csv

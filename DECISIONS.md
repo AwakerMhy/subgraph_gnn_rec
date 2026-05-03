@@ -157,7 +157,7 @@
 - **决定**：方案 B，放弃 college_msg legacy 协议实验
 - **原因**：稠密小图（1899 节点）的结构同质性是根本限制，与训练轮数无关；继续跑只是浪费 GPU 时间。bitcoin_otc（5881 节点，稀疏）和 email_eu（986 节点，但首次边过滤后结构更有判别力）更值得观察
 - **后果**：college_msg 在 legacy 协议下无结果；若需要 college_msg 数据点，应换用 simulated_recall 协议
-- **状态**：active
+- **状态**：superseded by [2026-04-21] 在线仿真框架（整个实验路线切换至 online simulation）
 
 ---
 

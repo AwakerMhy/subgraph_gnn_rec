@@ -1,19 +1,41 @@
 # PROGRESS — 当前任务进度
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-24 16:00
+> 最后更新：2026-05-02
+
+---
+
+## [新离线协议：ego_cn_offline]
+- 状态：✅ 已完成
+- 开始时间：2026-04-30
+- 完成时间：2026-04-30
+
+### 任务定义
+- 切分：70% E_obs / 中15% 训练 / 后15% 测试（时间切分）
+- 正样本：E_hidden 中存在的边 (u→v)
+- 负样本：(u→v) 满足 (u,v) ∉ E_obs 且 (u,v) ∉ E_hidden（当前切分期）
+- 子图：u 的 ego 子图 + u,v 公共邻居（ego_cn），背景图始终为 E_obs
+- cutoff_time：固定传 2.0（> 所有归一化时间戳），TimeAdjacency 仅含 E_obs 边，不存在泄露
+
+### 实现步骤
+- [x] 步骤1：新增 `EgoCNOfflineDataset` 类（src/train.py，RecallDataset 之后）
+- [x] 步骤2：新增 `_run_ego_cn_offline` 函数（src/train.py）
+- [x] 步骤3：更新 `main()` 协议分支，加入 `ego_cn_offline`
+- [x] 步骤4：smoke test 通过（sbm 3 epoch，MRR 0.079→0.167，loss 正常收敛）
+
+### 已变更文件
+- src/train.py
 
 ---
 
 ## [在线学习仿真：CollegeMsg 全量运行]
-- 状态：进行中
+- 状态：✅ 已完成
 - 开始时间：2026-04-23
+- 完成时间：2026-04-30
 - 配置：configs/online/college_msg_full.yaml（mixture 召回+composite 用户+p_neg=0.02+decay+replay=200）
-- [ ] 步骤 1：dry_run 验证（✅ CPU/CUDA 均通过，1 轮 coverage=0.0684 prec@K=0.0373）
-- [ ] 步骤 2：100 轮完整仿真（🟡 运行中，CUDA，后台任务 bzqj85e74）
-- [ ] 步骤 3：读取 results/online/college_msg_full/rounds.csv，分析指标趋势
-- 输出路径：results/online/college_msg_full/rounds.csv
-- 下一步行动：等待 100 轮完成，查看 coverage/prec@K/loss 趋势
+- [x] 步骤 1：dry_run 验证（CPU/CUDA 均通过，1 轮 coverage=0.0684 prec@K=0.0373）
+- [x] 步骤 2：100 轮完整仿真（results/online/college_msg_full/rounds.csv，共 100 轮）
+- [x] 步骤 3：最终指标（round 99）：coverage=0.1157，prec@K=0.0251，mrr@1=0.175，mrr@3=0.242，mrr@5=0.242
 
 ---
 
@@ -77,21 +99,26 @@
 - [x] 下载 + 预处理：ogbl_collab（235k节点/1.9M边）
 - [x] 训练：facebook_ego × ego_cn × random_split × 30ep（✅ val MRR=0.9402）
 - [x] 训练：lastfm_asia × ego_cn × 30ep（✅ val MRR=0.9663）
-- [ ] 训练：epinions × ego_cn × temporal_split × 30ep（🟡 运行中，修复边划分）
-- [ ] 训练：twitch_gamers × ego_cn × 30ep（🟡 运行中）
-- [ ] 训练：ogbl_collab × ego_cn × temporal_split × 30ep（⏳ 排队）
-- 下一步行动：等待 epinions/twitch 完成后汇总新数据集对比表
+- [x] 训练：epinions × ego_cn × temporal_split（❌ 失败：val split 为空，数据集无时间戳，temporal_split 退化）
+- [x] 训练：twitch_gamers × ego_cn（❌ 失败：同上，val split 为空）
+- [ ] 训练：ogbl_collab × ego_cn × temporal_split × 30ep（⏳ 未启动）
+- 状态：部分完成（facebook_ego + lastfm_asia 已跑；epinions/twitch 失败待处理；ogbl_collab 未启动）
 
 ---
 
 ## [encoder_type 消融：GIN-last vs layer_concat vs layer_sum]
-- 状态：进行中
+- 状态：✅ 已完成
 - 开始时间：2026-04-23
+- 完成时间：2026-04-30
 - 固定配置：CollegeMsg × ego_cn × simulated_recall × hidden_dim=64 × seed=42
-- [ ] encoder_type=last（🟡 运行中）
-- [ ] encoder_type=layer_concat
-- [ ] encoder_type=layer_sum
-- 下一步行动：等待 3 个 encoder 完成，对比 MRR/Hits@K
+- [x] encoder_type=last（ep21 早停，best ep11，MRR=0.2001，Hits@10=0.3196）
+- [x] encoder_type=layer_concat（ep27 早停，best ep17，MRR=0.2171，Hits@10=0.3711）
+- [x] encoder_type=layer_sum（ep19 早停，best ep9，MRR=0.2176，Hits@10=0.3196）
+
+### 结论
+- layer_concat 和 layer_sum 均优于 last（MRR +8-9%）
+- layer_concat 在 Hits@10 上略胜（0.3711 vs 0.3196）
+- 默认配置沿用 layer_sum（online 实验中已在用）
 
 ### 烟测结果对比（100 样本，1 epoch，CollegeMsg）
 | 指标 | 2-hop BFS | ego+CN | 改进 |
@@ -207,17 +234,8 @@
 ---
 
 ## [Bitcoin-OTC / Email-EU × 3 Encoder 对比实验]
-- 状态：进行中
+- 状态：⏸ 废弃（2026-04-21，整体切至在线仿真框架）
 - 开始时间：2026-04-09 14:00
-- [x] 修 email_eu.py 路径（文件名 email-EuAll.txt → email-Eu-core-temporal.txt）
-- [x] 修 bitcoin_otc.py timestamp dtype（float64 而非 int64）
-- [x] train.py 增加 --encoder_type 参数，传入 LinkPredModel
-- [x] 预处理 bitcoin_otc（5881节点/35592边）
-- [x] 预处理 email_eu（986节点/24929边）
-- [x] smoke test 6 组全部通过（2 epoch × 100 samples）
-- [ ] 正式训练（30 epoch × 2000 samples，后台运行中 b0ur3ak5x）
-- 已变更文件：src/dataset/real/email_eu.py, src/dataset/real/bitcoin_otc.py, src/train.py, scripts/preprocess_datasets.py, scripts/run_encoder_ablation.py
-- 下一步行动：等待训练完成，汇总结果
 
 ---
 
@@ -257,15 +275,7 @@
 - 下一步行动：实现 Phase 4 — src/train.py 训练循环
 
 ## [Phase 4 — 训练与评估]
-- 状态：进行中
-- 开始时间：2026-04-08 17:30
-- 当前进度：第 3 步 / 共 4 步
-- [x] src/train.py：训练主循环（已完成）
-- [x] src/evaluate.py：测试集评估（已完成）
-- [x] 端到端跑通（合成数据集 sbm，3 epoch smoke test PASSED）
-- [ ] src/baseline/heuristic.py（可选）
-- 已变更文件：src/train.py, src/evaluate.py（修复 max_neighbors_per_node 参数名）
-- 下一步行动：实现 heuristic baseline 或开始 Phase 5 实验
+- 状态：✅ 已完成（2026-04-09）
 
 ---
 

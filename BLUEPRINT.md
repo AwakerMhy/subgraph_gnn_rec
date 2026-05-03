@@ -1,7 +1,7 @@
 # BLUEPRINT — Social Network Online Learning Simulation
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-27
+> 最后更新：2026-05-02
 
 **本文件是项目地图，每次任务开始前必读。目的是减少 grep/read 开销。**
 
@@ -25,7 +25,8 @@ gnn/
 ├── configs/
 │   ├── default.yaml       # 默认超参（含 protocol/recall/curriculum 新字段）
 │   ├── dataset/           # 各数据集 yaml（college_msg/bitcoin_otc/email_eu/gowalla/epinions…）
-│   └── model/             # 模型变体 yaml（含消融实验）
+│   ├── model/             # 模型变体 yaml（含消融实验）
+│   └── online/            # 在线仿真配置（algo_sweep_*/bitcoin_alpha/college_msg_*/sbm*…，共 30+ yaml）
 │
 ├── data/
 │   ├── raw/               # 原始下载文件（.gitignore 排除）
@@ -44,41 +45,48 @@ gnn/
 │   │   │   ├── sx_mathoverflow.py
 │   │   │   ├── sx_askubuntu.py
 │   │   │   ├── sx_superuser.py
-│   │   │   ├── gowalla.py     # ← 新（Step 7）
-│   │   │   ├── epinions.py    # ← 新（Step 7）
+│   │   │   ├── gowalla.py
+│   │   │   ├── epinions.py
+│   │   │   ├── facebook_ego.py  # Facebook ego-network（4039 节点，176468 边）
+│   │   │   ├── lastfm_asia.py   # LastFM Asia（7624 节点，55612 边）
+│   │   │   ├── ogbl_collab.py   # ogbl-collab（235k 节点，1.9M 边）
+│   │   │   ├── twitch_gamers.py # Twitch Gamers（168k 节点，13.6M 边）
 │   │   │   ├── wiki_vote.py   # Wikipedia 投票网络（7115 节点，103689 边，recip=0.056）
 │   │   │   ├── slashdot.py    # Slashdot Zoo friend/foe（77350 节点，516575 边，recip=0.186）
 │   │   │   └── email_euall.py # Email-EuAll 欧洲邮件网络（265009 节点，418956 边，recip=0.260）
 │   │   └── synthetic/
 │   │       ├── generator_base.py
-│   │       ├── sbm.py        # 标准 SBM：均匀活跃度 + 共同邻居加成
-│   │       ├── dcsbm.py      # DC-SBM：θ_out/θ_in Pareto 幂律度分布
+│   │       ├── sbm.py           # 标准 SBM：均匀活跃度 + 共同邻居加成
+│   │       ├── dcsbm.py         # DC-SBM：θ_out/θ_in Pareto 幂律度分布
 │   │       ├── hawkes.py
-│   │       └── triadic.py
+│   │       ├── triadic.py
+│   │       └── synth_dataset.py # SyntheticDataset 包装类（供 loop.py 加载合成图）
 │   │
 │   ├── graph/
-│   │   ├── subgraph.py          # extract_subgraph + TimeAdjacency + 子图缓存
-│   │   ├── edge_split.py        # ← 新（Step 1/3/5）两层图构造 + 互惠性
+│   │   ├── subgraph.py          # extract_subgraph + TimeAdjacency + 子图缓存工具
+│   │   ├── edge_split.py        # TwoLayerEdgeSet + temporal/random_mask_split + 互惠性标签
 │   │   ├── labeling.py          # DRNL 标记
 │   │   └── negative_sampling.py # legacy 负采样（random/hard_2hop/historical/degree）
 │   │
-│   ├── recall/                  # ← 新包（Step 4/8）模拟召回子系统
+│   ├── recall/                  # 模拟召回子系统
 │   │   ├── __init__.py          # 导出 RecallBase/CN/AA/build_recall/CurriculumScheduler
 │   │   ├── base.py              # RecallBase ABC（含 update_graph hook）
-│   │   ├── heuristic.py         # CommonNeighborsRecall / AdamicAdarRecall；自适应阈值（n≤10k用set ops，>10k用sparse matmul）
-│   │   ├── ppr.py               # ← 新（P0-2）PPRRecall：个性化 PageRank power iteration
-│   │   ├── community.py         # ← 新（P0-2）CommunityRandomRecall：社区内随机采样
-│   │   ├── mixture.py           # ← 新（P0-2）MixtureRecall：配额合并多子召回器
-│   │   ├── registry.py          # build_recall：支持 adamic_adar/ppr/community_random/mixture
-│   │   └── curriculum.py        # ← 新（Step 8）CurriculumScheduler
+│   │   ├── heuristic.py         # CommonNeighborsRecall / TwoHopRandomRecall / AdamicAdarRecall；自适应阈值（n≤10k用set ops，>10k用sparse matmul）
+│   │   ├── ppr.py               # PPRRecall：个性化 PageRank power iteration
+│   │   ├── community.py         # CommunityRandomRecall：社区内随机采样
+│   │   ├── mixture.py           # MixtureRecall：配额合并多子召回器
+│   │   ├── registry.py          # build_recall：支持 adamic_adar/ppr/community_random/mixture/two_hop_random
+│   │   └── curriculum.py        # CurriculumScheduler
 │   │
 │   ├── model/
 │   │   ├── gin_encoder.py       # GINEncoder / GINEncoderLayerConcat / GINEncoderLayerSum
 │   │   ├── scorer.py            # MLP 评分头 → sigmoid
-│   │   └── model.py             # LinkPredModel（组装 GIN + Scorer，use_node_attr 开关）
+│   │   ├── model.py             # LinkPredModel（组装 GIN + Scorer，use_node_attr 开关）
+│   │   ├── encoder_attr.py      # 节点属性 MLP encoder
+│   │   └── node_emb_model.py    # NodeEmbModel（纯 embedding lookup ranker）
 │   │
 │   │
-│   ├── online/                      # ← 新包（在线学习仿真，2026-04-20）
+│   ├── online/                      # 在线学习仿真包（2026-04-20）
 │   │   ├── static_adj.py            # StaticAdjacency：duck-type TimeAdjacency，O(1) 动态加边，懒构建 CSR
 │   │   ├── env.py                   # OnlineEnv：G*/G_t/cooldown(hard+decay双模式)/cooldown_excluded_nodes()
 │   │   ├── feedback.py              # FeedbackSimulator：p_pos/p_neg 伯努利接受模拟
@@ -94,7 +102,7 @@ gnn/
 │   │   ├── graphsage.py
 │   │   ├── seal.py
 │   │   ├── tgat.py
-│   │   └── mlp_link.py          # ← 新（P2-1）MLPLinkScorer + extract_topo_features
+│   │   └── mlp_link.py          # MLPLinkScorer + extract_topo_features
 │   │
 │   ├── train.py                 # 训练主循环（含 protocol 分支 + RecallDataset）
 │   ├── evaluate.py              # 测试集评估
@@ -104,18 +112,26 @@ gnn/
 │       ├── logger.py
 │       └── seed.py
 │
-├── configs/
-│   └── online/
-│       ├── college_msg_full.yaml       # 综合配置（mixture+composite+p_neg=0.02+decay+replay=200）
-│       ├── college_msg_no_replay.yaml  # 同上但 replay.capacity=0（遗忘对照）
-│       └── college_msg_stratified.yaml # 分层初始化配置
-│
 ├── scripts/
 │   ├── preprocess_datasets.py        # 批量预处理所有数据集
+│   ├── preprocess_new_datasets.py    # 新数据集预处理（facebook/lastfm/ogbl/twitch）
+│   ├── download_new_datasets.py      # 新数据集下载脚本
+│   ├── run_online_sim.py             # 在线仿真 CLI 入口
+│   ├── run_online_sim_win.py         # Windows 版本（规避多进程问题）
+│   ├── run_algo_sweep.py             # 算法横向对比实验
+│   ├── run_ablation_grid.py          # 消融网格调度（center_plus_flips / full）
 │   ├── run_comparison.py             # 多模型对比实验
+│   ├── run_encoder_ablation.py       # encoder_type 消融
 │   ├── run_protocol_comparison.py    # legacy vs simulated_recall 协议对比
-│   ├── visualize_online_run.py       # ← 新（P2-3）生成 coverage/KL/diversity 图表
-│   └── run_ablation_grid.py          # ← 新（P2-7）消融网格调度（center_plus_flips / full）
+│   ├── run_eps_sweep.py              # epsilon-greedy 探索率扫描
+│   ├── run_hidden_dim_ablation.sh    # hidden_dim 消融 shell 脚本
+│   ├── run_gt_init_sweep.py          # ground_truth init 扫描
+│   ├── gen_thr_grid_configs.py       # 阈值网格 config 生成
+│   ├── precompute_subgraphs.py       # 离线子图预计算
+│   ├── plot_algo_sweep.py            # algo_sweep 结果出图
+│   ├── plot_coverage.py              # coverage 曲线可视化
+│   ├── visualize_online_run.py       # 生成 coverage/KL/diversity 图表
+│   └── compare_cooldown.py           # cooldown 策略对比
 │
 ├── tests/
 │   ├── test_split.py
@@ -128,13 +144,19 @@ gnn/
 │   ├── test_curriculum.py            # 16 例
 │   ├── test_train.py                 # 7 例
 │   ├── test_datasets.py              # 数据集格式验证
-│   ├── test_feedback_probabilistic.py # ← 新（P0-1）6 例
-│   ├── test_recall_ppr.py             # ← 新（P0-2）5 例
-│   ├── test_recall_mixture.py         # ← 新（P0-2）5 例
-│   ├── test_user_selector.py          # ← 新（P0-3）6 例
-│   ├── test_env_init_sampling.py      # ← 新（P1-1）7 例
-│   ├── test_cooldown_decay.py         # ← 新（P1-2）6 例
-│   └── test_evaluator_metrics.py      # ← 新（P1-4）6 例
+│   ├── test_online.py                # 在线仿真集成测试（10 例）
+│   ├── test_feedback_probabilistic.py # 6 例
+│   ├── test_recall_ppr.py             # 5 例
+│   ├── test_recall_mixture.py         # 5 例
+│   ├── test_user_selector.py          # 6 例
+│   ├── test_env_init_sampling.py      # 7 例
+│   ├── test_cooldown_decay.py         # 6 例
+│   ├── test_evaluator_metrics.py      # 6 例
+│   ├── smoke_model.py                 # 模型前向传播 smoke test
+│   ├── bench_optimizations.py         # 优化基准测试套件
+│   ├── inspect_subgraphs.py           # 子图调试工具
+│   ├── gen_sbm_data.py                # SBM 数据生成辅助
+│   └── process_college_msg.py         # CollegeMsg 处理辅助
 │
 ├── results/
 │   ├── logs/
@@ -218,9 +240,10 @@ src/recall/heuristic.py
 | `compute_reciprocity_labels(edges)` | `src/graph/edge_split.py:189` |
 | `RecallBase`（ABC） | `src/recall/base.py:7` |
 | `RecallBase.update_graph(round_idx)` | `src/recall/base.py:20` |
-| `_two_hop_scores(u, t, time_adj, ...)` | `src/recall/heuristic.py:23` |
-| `CommonNeighborsRecall` | `src/recall/heuristic.py:56` |
-| `AdamicAdarRecall` | `src/recall/heuristic.py:82` |
+| `_two_hop_scores(u, t, time_adj, ...)` | `src/recall/heuristic.py:35` |
+| `CommonNeighborsRecall` | `src/recall/heuristic.py:81` |
+| `TwoHopRandomRecall` | `src/recall/heuristic.py:142` |
+| `AdamicAdarRecall` | `src/recall/heuristic.py:197` |
 | `PPRRecall` | `src/recall/ppr.py:1` |
 | `PPRRecall.candidates(u, cutoff_time, top_k)` | `src/recall/ppr.py:40` |
 | `CommunityRandomRecall` | `src/recall/community.py:1` |
@@ -244,24 +267,27 @@ src/recall/heuristic.py
 | `eval_mrr_epoch(...)` | `src/train.py:355` |
 | `_run_simulated_recall(...)` | `src/train.py:419` |
 | `main()` | `src/train.py:603` |
-| `StaticAdjacency` | `src/online/static_adj.py:13` |
-| `OnlineEnv` | `src/online/env.py:21` |
-| `OnlineEnv.step(recs, round_idx)` | `src/online/env.py:80` |
-| `OnlineEnv.set_cooldown_mode(mode)` | `src/online/env.py` |
-| `OnlineEnv.mask_cooldown(u, cands, t)` | `src/online/env.py` |
+| `StaticAdjacency` | `src/online/static_adj.py:14` |
+| `OnlineEnv` | `src/online/env.py:16` |
+| `OnlineEnv.cooldown_excluded_nodes(u, t)` | `src/online/env.py:242` |
+| `OnlineEnv.set_cooldown_mode(mode)` | `src/online/env.py:259` |
+| `OnlineEnv.mask_cooldown(u, cands, t)` | `src/online/env.py:274` |
+| `OnlineEnv.step(recs, round_idx)` | `src/online/env.py:294` |
 | `FeedbackSimulator.simulate(recs)` | `src/online/feedback.py:32` |
 | `UserSelector` | `src/online/user_selector.py:1` |
 | `UserSelector.select(t, adj)` | `src/online/user_selector.py:50` |
 | `UserSelector.update_after_round(t, accepted)` | `src/online/user_selector.py:80` |
-| `OnlineTrainer.score(u, candidates, adj)` | `src/online/trainer.py:64` |
-| `OnlineTrainer.update(pos, neg, adj)` | `src/online/trainer.py:81` |
-| `RoundMetrics.update(...)` | `src/online/evaluator.py:43` |
+| `OnlineTrainer` | `src/online/trainer.py:130` |
+| `OnlineTrainer.score(u, candidates, adj)` | `src/online/trainer.py:343` |
+| `OnlineTrainer.update(pos, neg, adj)` | `src/online/trainer.py:422` |
+| `RoundMetrics` | `src/online/evaluator.py:17` |
+| `RoundMetrics.update(...)` | `src/online/evaluator.py:57` |
 | `build_scheduler(optimizer, ...)` | `src/online/schedule.py:14` |
-| `run_online_simulation(cfg)` | `src/online/loop.py:58` |
-| `MLPLinkScorer` | `src/baseline/mlp_link.py:1` |
-| `extract_topo_features(adj, n_nodes, ...)` | `src/baseline/mlp_link.py:30` |
+| `run_online_simulation(cfg)` | `src/online/loop.py:124` |
+| `MLPLinkScorer` | `src/baseline/mlp_link.py:18` |
+| `extract_topo_features(adj, n_nodes, ...)` | `src/baseline/mlp_link.py:37` |
 | `LinkPredModel(n_nodes, node_emb_dim)` | `src/model/model.py:19` |
-| `NodeEmbModel` | `src/model/node_emb_model.py:12` |
+| `NodeEmbModel` | `src/model/node_emb_model.py:11` |
 
 ---
 
@@ -323,5 +349,5 @@ class TwoLayerEdgeSet:
 2. **GNN 类型**：`--encoder_type last | layer_concat | layer_sum`
 3. **负样本策略**（legacy）：`--neg_strategy random:0.5,hard_2hop:0.3,degree:0.2`
 4. **课程调度**：`--curriculum --curriculum_schedule linear|cosine|step`
-5. **子图缓存**：`cache_subgraphs()` / `load_cached_subgraphs()` 已实现（`subgraph.py:326`），接入 `train.py` 可得 10-30× 提速（TODO）
+5. **子图缓存**：`cache_subgraphs()` / `load_cached_subgraphs()` 已实现（`subgraph.py:326`）。小图（n<5000）禁用磁盘缓存（每份 ~12GB），已改用 TimeAdjacency 内存方案；大图（n>50k）条件性启用待评估
 6. **GNN + 节点嵌入混合**：`model.node_emb_dim > 0` 时在 GIN 图嵌入后 concat `emb(u) ‖ emb(v)` 再送 Scorer。config 中加 `node_emb_dim: <int>` 即可启用；`_build_flat_batched_graph` 写入 `g.ndata["_node_id"]` 供 lookup

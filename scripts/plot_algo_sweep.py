@@ -27,21 +27,19 @@ def load_sweep(sweep_dir: Path) -> dict[str, pd.DataFrame]:
     data = {}
     for d in sorted(sweep_dir.iterdir()):
         csv = d / "rounds.csv"
-        if not d.is_dir() or not csv.exists():
+        if not d.is_dir() or not csv.exists() or d.name in ("curves.png",):
             continue
-        # 从目录名提取算法名（去掉数据集前缀）
+        # 跳过非标准变体目录（如 gnn_sum_h16、gnn_sum_h32 等）
         parts = d.name.split("_")
-        # 找最后匹配 ALGO_ORDER 的后缀
-        algo = None
+        algo_candidate = None
         for n in range(len(parts), 0, -1):
-            candidate = "_".join(parts[-n:])
-            if candidate in ALGO_ORDER:
-                algo = candidate
+            if "_".join(parts[-n:]) in ALGO_ORDER:
+                algo_candidate = "_".join(parts[-n:])
                 break
-        if algo is None:
-            algo = d.name
+        if algo_candidate is None:
+            continue
         df = pd.read_csv(csv)
-        data[algo] = df
+        data[algo_candidate] = df
     return data
 
 

@@ -15,7 +15,7 @@ feedback:
   p_neg: 0.0
   p_pos: 1.0
 init_edge_ratio: 0.25
-init_strategy: stratified
+init_strategy: random
 model:
   encoder_type: last
   hidden_dim: 8
@@ -33,10 +33,10 @@ replay:
   sample_n: 0
 runtime:
   device: cpu
-  log_every: 50
-  out_dir: results/online/algo_sweep_wiki_vote/wiki_vote_gnn
+  log_every: 1
+  out_dir: results/online/algo_sweep_wiki_vote_v2/wiki_vote_gnn
   seed: 42
-total_rounds: 100
+total_rounds: 30
 trainer:
   batch_subgraph_max_hop: 2
   grad_clip: 1.0
@@ -54,5 +54,5 @@ user_selector:
   gamma: 2.0
   lam: 0.1
   sample_ratio: 0.1
-  strategy: composite
+  strategy: uniform
   w: 3
