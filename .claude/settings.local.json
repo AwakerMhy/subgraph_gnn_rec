@@ -70,7 +70,12 @@
       "Bash(Get-Content \"C:\\\\Users\\\\12143\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-12143-Desktop-pythonProject-gnn\\\\ef4d0727-0463-4aca-923f-15cb9fa07b50\\\\tasks\\\\bdz21fj2c.output\" -Wait)",
       "Bash(Select-String -Pattern \"\\\\[OK\\\\]|\\\\[ERR\\\\]|全部完成|Error|Traceback\")",
       "PowerShell(Get-Process *)",
-      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/run_init_ratio_sweep.py 2>&1 | Select-Object -First 3)"
+      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/run_init_ratio_sweep.py 2>&1 | Select-Object -First 3)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\Users\\\\12143\\\\miniconda3\\\\envs\\\\gnn\\\\python.exe\" -c \"import sys; sys.path.insert\\(0,'.'\\);  from scripts.orchestrator import SweepSpec; s=SweepSpec\\('configs/sweep_spec_smoke.yaml'\\); cells=s.expand\\(\\); [print\\(c.cell_id, c.n_nodes, c.config['runtime']['out_dir']\\) for c in cells]\" 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -c \"import sys; sys.path.insert\\(0,'.'\\); from scripts.orchestrator import SweepSpec; s=SweepSpec\\('configs/sweep_spec_smoke.yaml'\\); cells=s.expand\\(\\); [print\\(c.cell_id, c.n_nodes, c.config['runtime']['out_dir']\\) for c in cells]\" 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -c \"import sys; print\\(sys.executable\\)\" 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/orchestrator.py --spec configs/sweep_spec_smoke.yaml --dry_run 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/orchestrator.py --spec configs/sweep_spec_smoke.yaml --no_resume 2>&1)"
     ]
   }
 }
