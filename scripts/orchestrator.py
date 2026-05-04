@@ -8,6 +8,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import copy
 import itertools
 import os
@@ -629,10 +630,12 @@ def _sanity_check_first_round(out_dir: Path, cell_id: str) -> list[str]:
 
 # ── Orchestrator ───────────────────────────────────────────────────────────────
 class Orchestrator:
-    def __init__(self, spec_path: Path, resume: bool = True, dry_run: bool = False) -> None:
+    def __init__(self, spec_path: Path, resume: bool = True, dry_run: bool = False,
+                 workers: int = 1) -> None:
         self.spec = SweepSpec(spec_path)
         self.resume = resume
         self.dry_run = dry_run
+        self.workers = max(1, workers)
         self.cells = self.spec.expand()
         self.ledger = Ledger(_sweep_db(self.spec.name))
         _csv = ORCH_DIR / self.spec.name / "results.csv"
@@ -644,7 +647,7 @@ class Orchestrator:
 
         print(
             f"[orchestrator] sweep={self.spec.name}  "
-            f"cells={len(self.cells)}  resume={resume}  dry_run={dry_run}",
+            f"cells={len(self.cells)}  resume={resume}  dry_run={dry_run}  workers={self.workers}",
             flush=True,
         )
         summary = self.ledger.summary()
@@ -671,48 +674,78 @@ class Orchestrator:
             print(f"\n[orchestrator] DONE — {summary}", flush=True)
             self._print_final_table()
 
+    def _run_with_oom(self, cell: Cell) -> str:
+        """运行单个 cell，含 OOM 一次重试；返回最终 result 字符串。"""
+        result = run_cell(cell, self.ledger, self.dry_run,
+                          cfg_dir=self._cfg_dir, logs_dir=self._logs_dir)
+        if result == "oom":
+            row2 = self.ledger.get(cell.cell_id)
+            retried = row2["oom_retried"] if row2 else 0
+            old_bs = row2["batch_size"] if row2 else cell.initial_batch_size
+            if retried < 1:
+                new_bs = max(1, old_bs // 2)
+                log_file = self._logs_dir / f"{cell.cell_id}.log"
+                log_tail = log_file.read_text(encoding="utf-8", errors="replace")[-500:] \
+                           if log_file.exists() else ""
+                self.ledger.set_oom_and_requeue(cell.cell_id, new_bs, log_tail,
+                                                row2.get("duration_s", 0) if row2 else 0)
+                print(f"  [oom-retry] {cell.cell_id}  batch {old_bs}→{new_bs}", flush=True)
+                result = run_cell(cell, self.ledger, self.dry_run,
+                                  cfg_dir=self._cfg_dir, logs_dir=self._logs_dir)
+            else:
+                self.ledger.set_failed(cell.cell_id, -2, "OOM after retry", 0)
+                result = "failed"
+        return result
+
+    def _on_completed(self, cell: Cell) -> None:
+        out_dir = ROOT / cell.config["runtime"]["out_dir"]
+        for warn in _sanity_check_first_round(out_dir, cell.cell_id):
+            print(warn, flush=True)
+        self.aggregator.ingest(cell)
+        self.aggregator.regenerate_table(self.spec.name)
+
     def _loop(self) -> None:
-        for cell in self.cells:
-            row = self.ledger.get(cell.cell_id)
-            status = row["status"] if row else "pending"
+        pending = [
+            cell for cell in self.cells
+            if not (self.resume
+                    and (row := self.ledger.get(cell.cell_id))
+                    and row["status"] == "completed")
+        ]
+        skipped = len(self.cells) - len(pending)
+        if skipped:
+            print(f"  [skip ] {skipped} already-completed cells", flush=True)
 
-            if status == "completed" and self.resume:
-                print(f"  [skip ] {cell.cell_id}", flush=True)
-                continue
-
-            print(f"\n  [queue] {cell.cell_id}  n_nodes={cell.n_nodes}", flush=True)
-            result = run_cell(cell, self.ledger, self.dry_run,
-                              cfg_dir=self._cfg_dir, logs_dir=self._logs_dir)
-            print(f"  [{result:<9}] {cell.cell_id}  ({_elapsed_str(cell, self.ledger)})",
-                  flush=True)
-
-            # OOM handling: halve batch size, retry once
-            if result == "oom":
-                row2 = self.ledger.get(cell.cell_id)
-                retried = row2["oom_retried"] if row2 else 0
-                old_bs = row2["batch_size"] if row2 else cell.initial_batch_size
-                if retried < 1:
-                    new_bs = max(1, old_bs // 2)
-                    log_file = self._logs_dir / f"{cell.cell_id}.log"
-                    log_tail = log_file.read_text(encoding="utf-8", errors="replace")[-500:] \
-                               if log_file.exists() else ""
-                    self.ledger.set_oom_and_requeue(cell.cell_id, new_bs, log_tail,
-                                                    row2.get("duration_s", 0) if row2 else 0)
-                    print(f"  [oom-retry] {cell.cell_id}  batch {old_bs}→{new_bs}", flush=True)
-                    result = run_cell(cell, self.ledger, self.dry_run,
-                                     cfg_dir=self._cfg_dir, logs_dir=self._logs_dir)
-                    print(f"  [{result:<9}] {cell.cell_id} (post-OOM retry)", flush=True)
-                else:
-                    self.ledger.set_failed(cell.cell_id, -2, "OOM after retry", 0)
-                    result = "failed"
-
-            if result == "completed":
-                out_dir = ROOT / cell.config["runtime"]["out_dir"]
-                # Sanity check first-round metrics
-                for warn in _sanity_check_first_round(out_dir, cell.cell_id):
-                    print(warn, flush=True)
-                self.aggregator.ingest(cell)
-                self.aggregator.regenerate_table(self.spec.name)
+        if self.workers <= 1:
+            # 串行（原逻辑）
+            for cell in pending:
+                print(f"\n  [queue] {cell.cell_id}  n_nodes={cell.n_nodes}", flush=True)
+                result = self._run_with_oom(cell)
+                print(f"  [{result:<9}] {cell.cell_id}  ({_elapsed_str(cell, self.ledger)})",
+                      flush=True)
+                if result == "completed":
+                    self._on_completed(cell)
+        else:
+            # 并行模式：ThreadPoolExecutor（每个 cell 是独立子进程，Windows 安全）
+            total = len(pending)
+            done_count = 0
+            print(f"  [parallel] {total} cells  workers={self.workers}", flush=True)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.workers) as pool:
+                future_to_cell = {
+                    pool.submit(self._run_with_oom, cell): cell for cell in pending
+                }
+                for fut in concurrent.futures.as_completed(future_to_cell):
+                    cell = future_to_cell[fut]
+                    done_count += 1
+                    try:
+                        result = fut.result()
+                    except Exception as exc:
+                        result = "failed"
+                        print(f"  [EXC] {cell.cell_id}: {exc}", flush=True)
+                    print(f"  [{result:<9}] {cell.cell_id}  "
+                          f"({done_count}/{total}, {_elapsed_str(cell, self.ledger)})",
+                          flush=True)
+                    if result == "completed":
+                        self._on_completed(cell)
 
     def _print_final_table(self) -> None:
         csv_path = ORCH_DIR / self.spec.name / "results.csv"
@@ -753,9 +786,12 @@ def main() -> None:
     parser.add_argument("--no_resume", dest="resume", action="store_false")
     parser.add_argument("--dry_run", action="store_true",
                         help="Register cells but do not execute")
+    parser.add_argument("--workers", type=int, default=1,
+                        help="并发实验数（默认 1=串行，用 ThreadPoolExecutor）")
     args = parser.parse_args()
 
-    orch = Orchestrator(Path(args.spec), resume=args.resume, dry_run=args.dry_run)
+    orch = Orchestrator(Path(args.spec), resume=args.resume, dry_run=args.dry_run,
+                        workers=args.workers)
     orch.run()
 
 
