@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from src.online.feedback import Feedback
 from src.online.static_adj import StaticAdjacency
@@ -61,10 +62,16 @@ class RoundMetrics:
         feedback: Feedback,
         adj: StaticAdjacency,
         coverage: float,
+        rec_scores: dict[int, list[float]] | None = None,
     ) -> dict[str, float]:
         row: dict[str, float] = {"round": round_idx, "coverage": coverage}
 
         accepted_set = set(feedback.accepted)
+
+        if rec_scores is not None:
+            auc_val = self._compute_feedback_auc(recs, accepted_set, rec_scores)
+            if auc_val is not None:
+                row["auc_feedback"] = auc_val
         n_rec_total = n_accepted_total = 0
 
         # 排序指标用 G* 做正样本（不受 p_pos 采样噪声影响）
@@ -140,6 +147,33 @@ class RoundMetrics:
         if self._G_t_undirected is None and self._G_t is not None:
             self._G_t_undirected = self._G_t.to_undirected()
         return self._G_t_undirected
+
+    # ── Feedback AUC ─────────────────────────────────────────────────────────
+
+    def _compute_feedback_auc(
+        self,
+        recs: dict[int, list[int]],
+        accepted_set: set[tuple[int, int]],
+        rec_scores: dict[int, list[float]],
+    ) -> float | None:
+        y_true: list[int] = []
+        y_score: list[float] = []
+        for u, vs in recs.items():
+            scores = rec_scores.get(u)
+            if not scores or not vs:
+                continue
+            for v, s in zip(vs, scores):
+                y_true.append(1 if (u, v) in accepted_set else 0)
+                y_score.append(s)
+        if len(y_true) < 2:
+            return None
+        arr = np.array(y_true)
+        if arr.sum() == 0 or arr.sum() == len(arr):
+            return None
+        try:
+            return float(roc_auc_score(arr, np.array(y_score)))
+        except Exception:
+            return None
 
     # ── 多样性指标 ────────────────────────────────────────────────────────────
 

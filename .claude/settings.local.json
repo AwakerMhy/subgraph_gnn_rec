@@ -94,7 +94,8 @@
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/compare_constant_lr.py --seeds 0 --metric mrr_at_1 2>&1)",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/compare_constant_lr.py --seeds 0 --metric \"mrr@1\" 2>&1)",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/run_constlr5e5_concat_sweep.py --seeds 0 --workers 4 2>&1)",
-      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_show_new_model_results.py)"
+      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_show_new_model_results.py)",
+      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_compare_vs_heuristic.py)"
     ]
   }
 }

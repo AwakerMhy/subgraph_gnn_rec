@@ -2,14 +2,15 @@ import pandas as pd
 from pathlib import Path
 
 sweep = 'new_model_sweep_ir40_s42'
-models = ['gnn_sum', 'graphsage_emb', 'gat_emb']
+models = ['gnn_sum', 'seal', 'graphsage_emb', 'gat_emb']
 datasets = ['college_msg', 'dnc_email', 'bitcoin_alpha', 'email_eu']
 
 rows = []
 for ds in datasets:
     for m in models:
-        p = Path(f'results/online/{sweep}/{ds}_{m}/rounds.csv')
+        p = Path('results/online') / sweep / (ds + '_' + m) / 'rounds.csv'
         if not p.exists():
+            rows.append({'dataset': ds, 'model': m, 'mrr@1': '-', 'mrr@5': '-', 'hits@5': '-', 'coverage': '-'})
             continue
         df = pd.read_csv(p)
         rows.append({

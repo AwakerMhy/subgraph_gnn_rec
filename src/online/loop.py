@@ -445,6 +445,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         _exploit_ratio = trainer_cfg.get("exploit_ratio", 1.0)
         _exploit_k = max(1, int(top_k_rec * _exploit_ratio))   # GNN 保留位数
         _explore_k = top_k_rec - _exploit_k                    # 随机探索位数
+        rec_scores: dict[int, list[float]] = {}  # u -> 推荐候选的打分（与 recs[u] 对齐）
         for u in U:
             cand_nodes = user_cand_nodes[u]
             if not cand_nodes:
@@ -492,7 +493,9 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
                 explore_idx = tail_idx[chosen].tolist()
             else:
                 explore_idx = []
-            recs[u] = [cand_nodes[i] for i in exploit_idx + explore_idx]
+            all_idx = exploit_idx + explore_idx
+            recs[u] = [cand_nodes[i] for i in all_idx]
+            rec_scores[u] = [float(scores[i]) for i in all_idx]
 
         feedback = env.step(recs, t)
 

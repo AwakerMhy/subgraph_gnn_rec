@@ -49,6 +49,7 @@ def run_one(dataset: str, algo: str, seed: int, init_ratio: float) -> str:
     cfg["init_edge_ratio"] = init_ratio
     cfg["runtime"] = dict(cfg["runtime"])
     cfg["runtime"]["seed"] = seed
+    cfg["runtime"]["device"] = "cuda"
     cfg["runtime"]["out_dir"] = str(out_dir)
 
     cfg_dir = Path(f"configs/online/{sweep}")

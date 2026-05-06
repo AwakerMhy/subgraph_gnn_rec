@@ -37,6 +37,7 @@ def make_cfg(dataset: str, algo: str, init_ratio: float, seed: int) -> dict:
     cfg["init_edge_ratio"] = init_ratio
     cfg["runtime"] = dict(ref["runtime"])
     cfg["runtime"]["seed"] = seed
+    cfg["runtime"]["device"] = "cuda"
     sweep = sweep_name(dataset, init_ratio, seed)
     cfg["runtime"]["out_dir"] = f"results/online/{sweep}/{dataset}_{algo}"
     return cfg
