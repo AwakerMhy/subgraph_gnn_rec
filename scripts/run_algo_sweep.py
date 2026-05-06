@@ -45,6 +45,9 @@ MODELS = [
     "gnn",
     "gnn_concat",
     "gnn_sum",
+    "seal",
+    "graphsage_emb",
+    "gat_emb",
 ]
 
 TOTAL_ROUNDS = 500  # default, overridden by --total_rounds
@@ -63,6 +66,12 @@ def make_cfg(dataset_name: str, dataset_path: str | None, model_type: str, init_
         model_cfg.update({"emb_dim": 64, "hidden_dim": 64})
     elif model_type == "mlp":
         model_cfg.update({"hidden_dim": 64})
+    elif model_type == "seal":
+        model_cfg.update({"hidden_dim": 32, "num_layers": 3, "label_dim": 16})
+    elif model_type == "graphsage_emb":
+        model_cfg.update({"emb_dim": 32, "hidden_dim": 32, "num_layers": 3})
+    elif model_type == "gat_emb":
+        model_cfg.update({"emb_dim": 32, "hidden_dim": 32, "num_layers": 3, "num_heads": 4})
 
     trainer_cfg: dict = {
         "update_every_n_rounds": 1,

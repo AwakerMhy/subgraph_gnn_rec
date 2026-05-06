@@ -86,7 +86,15 @@
       "PowerShell(conda info *)",
       "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts\\\\_show_superuser.py)",
       "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts\\\\_show_superuser_avg.py)",
-      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts\\\\_collect_v2_results.py)"
+      "PowerShell(C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts\\\\_collect_v2_results.py)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; C:\\\\Users\\\\12143\\\\miniconda3\\\\envs\\\\gnn\\\\python.exe scripts/run_constant_lr_sweep.py --datasets college_msg --algos gnn_h32 --seeds 0)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/run_constant_lr_sweep.py --datasets college_msg --algos gnn_h32 --seeds 0 2>&1 | Select-String -NotMatch \"^$\" | Select-Object -Last 20)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/run_constant_lr_sweep.py --seeds 0 --workers 4 2>&1)",
+      "PowerShell($f = \"C:\\\\Users\\\\12143\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-12143-Desktop-pythonProject-gnn\\\\cc8a7bda-481d-4a50-882d-ab153a26f345\\\\tasks\\\\br81in5cw.output\"; if \\(Test-Path $f\\) { \\(Get-Item $f\\).Length; Get-Content $f } else { \"file not found\" })",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/compare_constant_lr.py --seeds 0 --metric mrr_at_1 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/compare_constant_lr.py --seeds 0 --metric \"mrr@1\" 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/run_constlr5e5_concat_sweep.py --seeds 0 --workers 4 2>&1)",
+      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_show_new_model_results.py)"
     ]
   }
 }

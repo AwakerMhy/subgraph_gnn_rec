@@ -80,6 +80,8 @@ def _load_dataset(cfg: dict) -> tuple[pd.DataFrame, int, "torch.Tensor | None"]:
 
 _HEURISTIC_TYPES: frozenset[str] = frozenset({"cn", "aa", "jaccard", "pa"})
 _NO_MODEL_TYPES: frozenset[str] = frozenset({"random", "ground_truth"}) | _HEURISTIC_TYPES
+# seal / graphsage_emb / gat_emb 均通过 OnlineTrainer 走同一 GNN 打分路径
+_GNN_LIKE_TYPES: frozenset[str] = frozenset({"gnn", "seal", "graphsage_emb", "gat_emb"})
 
 
 def _score_heuristic(
@@ -232,6 +234,105 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         optimizer = None
         trainer = None
         scheduler = None
+    elif model_type == "seal":
+        from src.baseline.seal import SEALModel  # noqa: PLC0415
+        model = SEALModel(
+            hidden_dim=model_cfg.get("hidden_dim", 32),
+            num_layers=model_cfg.get("num_layers", 2),
+            label_dim=model_cfg.get("label_dim", 16),
+            max_label=model_cfg.get("max_label", 50),
+            scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
+            node_feat_dim=node_feat_dim,
+        ).to(device)
+        optimizer = _build_optimizer(model, trainer_cfg)
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
+        )
+        trainer = OnlineTrainer(
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
+            max_neighbors=trainer_cfg.get("max_neighbors", 30),
+            node_feat=node_feat,
+            min_batch_size=trainer_cfg.get("min_batch_size", 4),
+            grad_clip=trainer_cfg.get("grad_clip", 1.0),
+            score_chunk_size=trainer_cfg.get("score_chunk_size", 512),
+            use_amp=trainer_cfg.get("use_amp", False),
+        )
+    elif model_type == "graphsage_emb":
+        from src.baseline.graphsage_emb import GraphSAGEEmbModel  # noqa: PLC0415
+        model = GraphSAGEEmbModel(
+            n_nodes=n_nodes,
+            emb_dim=model_cfg.get("emb_dim", 32),
+            hidden_dim=model_cfg.get("hidden_dim", 32),
+            num_layers=model_cfg.get("num_layers", 2),
+            scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
+            aggregator_type=model_cfg.get("aggregator_type", "mean"),
+        ).to(device)
+        optimizer = _build_optimizer(model, trainer_cfg)
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
+        )
+        trainer = OnlineTrainer(
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
+            max_neighbors=trainer_cfg.get("max_neighbors", 30),
+            node_feat=node_feat,
+            min_batch_size=trainer_cfg.get("min_batch_size", 4),
+            grad_clip=trainer_cfg.get("grad_clip", 1.0),
+            score_chunk_size=trainer_cfg.get("score_chunk_size", 512),
+            use_amp=trainer_cfg.get("use_amp", False),
+        )
+    elif model_type == "gat_emb":
+        from src.baseline.gat_emb import GATEmbModel  # noqa: PLC0415
+        model = GATEmbModel(
+            n_nodes=n_nodes,
+            emb_dim=model_cfg.get("emb_dim", 32),
+            hidden_dim=model_cfg.get("hidden_dim", 32),
+            num_layers=model_cfg.get("num_layers", 2),
+            num_heads=model_cfg.get("num_heads", 4),
+            scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
+        ).to(device)
+        optimizer = _build_optimizer(model, trainer_cfg)
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
+        )
+        trainer = OnlineTrainer(
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
+            max_neighbors=trainer_cfg.get("max_neighbors", 30),
+            node_feat=node_feat,
+            min_batch_size=trainer_cfg.get("min_batch_size", 4),
+            grad_clip=trainer_cfg.get("grad_clip", 1.0),
+            score_chunk_size=trainer_cfg.get("score_chunk_size", 512),
+            use_amp=trainer_cfg.get("use_amp", False),
+        )
     else:
         model = LinkPredModel(
             hidden_dim=model_cfg.get("hidden_dim", 64),
@@ -319,7 +420,7 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             user_cand_nodes[u] = [v for v, _ in cands] if cands else []
 
         # ── Phase 2：批量打分（GNN 模式下一次 GPU forward） ─────────────────
-        if model_type == "gnn" and trainer is not None:
+        if model_type in _GNN_LIKE_TYPES and trainer is not None:
             gnn_inputs = [(u, user_cand_nodes[u]) for u in U if user_cand_nodes[u]]
             batch_scores = trainer.score_batch(gnn_inputs, adj)
             gnn_score_map: dict[int, list[float]] = {
