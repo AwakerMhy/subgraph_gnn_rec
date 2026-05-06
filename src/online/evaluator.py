@@ -69,9 +69,11 @@ class RoundMetrics:
         accepted_set = set(feedback.accepted)
 
         if rec_scores is not None:
-            auc_val = self._compute_feedback_auc(recs, accepted_set, rec_scores)
+            auc_val, uauc_val = self._compute_feedback_auc(recs, accepted_set, rec_scores)
             if auc_val is not None:
                 row["auc_feedback"] = auc_val
+            if uauc_val is not None:
+                row["uauc_feedback"] = uauc_val
         n_rec_total = n_accepted_total = 0
 
         # 排序指标用 G* 做正样本（不受 p_pos 采样噪声影响）
@@ -155,25 +157,38 @@ class RoundMetrics:
         recs: dict[int, list[int]],
         accepted_set: set[tuple[int, int]],
         rec_scores: dict[int, list[float]],
-    ) -> float | None:
-        y_true: list[int] = []
-        y_score: list[float] = []
+    ) -> tuple[float | None, float | None]:
+        """返回 (auc_feedback, uauc_feedback)。"""
+        y_true_all: list[int] = []
+        y_score_all: list[float] = []
+        per_user_aucs: list[float] = []
+
         for u, vs in recs.items():
             scores = rec_scores.get(u)
             if not scores or not vs:
                 continue
-            for v, s in zip(vs, scores):
-                y_true.append(1 if (u, v) in accepted_set else 0)
-                y_score.append(s)
-        if len(y_true) < 2:
-            return None
-        arr = np.array(y_true)
-        if arr.sum() == 0 or arr.sum() == len(arr):
-            return None
-        try:
-            return float(roc_auc_score(arr, np.array(y_score)))
-        except Exception:
-            return None
+            u_true = [1 if (u, v) in accepted_set else 0 for v in vs]
+            u_score = list(scores)
+            y_true_all.extend(u_true)
+            y_score_all.extend(u_score)
+            arr = np.array(u_true)
+            if arr.sum() > 0 and arr.sum() < len(arr):
+                try:
+                    per_user_aucs.append(float(roc_auc_score(arr, np.array(u_score))))
+                except Exception:
+                    pass
+
+        # global AUC
+        auc = None
+        arr_all = np.array(y_true_all)
+        if len(arr_all) >= 2 and arr_all.sum() > 0 and arr_all.sum() < len(arr_all):
+            try:
+                auc = float(roc_auc_score(arr_all, np.array(y_score_all)))
+            except Exception:
+                pass
+
+        uauc = float(np.mean(per_user_aucs)) if per_user_aucs else None
+        return auc, uauc
 
     # ── 多样性指标 ────────────────────────────────────────────────────────────
 

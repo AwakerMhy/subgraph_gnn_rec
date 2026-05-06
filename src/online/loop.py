@@ -587,7 +587,8 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
         else:
             train_result = {}
 
-        metrics = evaluator.update(t, recs, feedback, adj, env.coverage())
+        metrics = evaluator.update(t, recs, feedback, adj, env.coverage(),
+                                   rec_scores=rec_scores if rec_scores else None)
         metrics["replay_size"] = float(len(replay))
 
         # 定期释放 CUDA 缓存，防止显存碎片积累
@@ -596,11 +597,16 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
 
         if t % log_every == 0:
             elapsed = time.time() - t0
+            auc_str = (
+                (f"auc={metrics['auc_feedback']:.4f}  " if "auc_feedback" in metrics else "") +
+                (f"uauc={metrics['uauc_feedback']:.4f}  " if "uauc_feedback" in metrics else "")
+            )
             print(
                 f"Round {t+1:>4}/{total_rounds}  "
                 f"coverage={metrics['coverage']:.4f}  "
                 f"prec@K={metrics.get('precision_k', 0):.4f}  "
                 f"accepted={int(metrics['n_accepted'])}  "
+                f"{auc_str}"
                 f"loss={train_result.get('loss', float('nan')):.4f}  "
                 f"({elapsed:.1f}s)",
                 flush=True,
