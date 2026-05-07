@@ -174,14 +174,32 @@ class SweepSpec:
         elif method == "node_emb":
             cfg["model"] = {"type": "node_emb", "emb_dim": hidden_dim, "hidden_dim": hidden_dim}
         elif method == "gnn":
-            cfg["model"] = {"type": "gnn", "hidden_dim": hidden_dim, "num_layers": 3,
+            cfg["model"] = {"type": "gnn", "hidden_dim": 8, "num_layers": 3,
+                            "encoder_type": "last", "node_feat_dim": 0}
+        elif method == "gnn_h32":
+            cfg["model"] = {"type": "gnn", "hidden_dim": 32, "num_layers": 3,
                             "encoder_type": "last", "node_feat_dim": 0}
         elif method == "gnn_concat":
             cfg["model"] = {"type": "gnn", "hidden_dim": hidden_dim, "num_layers": 3,
                             "encoder_type": "layer_concat", "node_feat_dim": 0}
+        elif method == "gnn_concat_h8":
+            cfg["model"] = {"type": "gnn", "hidden_dim": 8, "num_layers": 3,
+                            "encoder_type": "layer_concat", "node_feat_dim": 0}
         elif method == "gnn_sum":
             cfg["model"] = {"type": "gnn", "hidden_dim": hidden_dim, "num_layers": 3,
                             "encoder_type": "layer_sum", "node_feat_dim": 0}
+        elif method == "gnn_sum_h8":
+            cfg["model"] = {"type": "gnn", "hidden_dim": 8, "num_layers": 3,
+                            "encoder_type": "layer_sum", "node_feat_dim": 0}
+        elif method == "graphsage_emb":
+            cfg["model"] = {"type": "graphsage_emb", "hidden_dim": hidden_dim,
+                            "emb_dim": hidden_dim, "num_layers": 3}
+        elif method == "gat_emb":
+            cfg["model"] = {"type": "gat_emb", "hidden_dim": hidden_dim,
+                            "emb_dim": hidden_dim, "num_layers": 3, "num_heads": 4}
+        elif method == "seal":
+            cfg["model"] = {"type": "seal", "hidden_dim": hidden_dim,
+                            "num_layers": 3, "label_dim": 16}
         else:
             cfg["model"] = {"type": method}
 

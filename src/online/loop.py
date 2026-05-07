@@ -410,11 +410,16 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             if not cands and cold_fill:
                 exclude = set(adj.out_neighbors(u)) | {u}
                 exclude |= env.cooldown_excluded_nodes(u, t)
-                pool = [v for v in range(n_nodes) if v not in exclude]
-                if pool:
-                    sample_n = min(cold_fill_k, len(pool))
-                    chosen = _rng.choice(len(pool), size=sample_n, replace=False)
-                    cands = [(pool[int(i)], 0.0) for i in chosen]
+                pool_size = n_nodes - len(exclude)
+                if pool_size > 0:
+                    sample_n = min(cold_fill_k, pool_size)
+                    chosen = set()
+                    while len(chosen) < sample_n:
+                        v = int(_rng.integers(n_nodes))
+                        if v not in exclude:
+                            chosen.add(v)
+                    cands = [(v, 0.0) for v in chosen]
+                    cold_start_users.add(u)
                     cold_start_users.add(u)
 
             user_cand_nodes[u] = [v for v, _ in cands] if cands else []

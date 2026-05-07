@@ -1,0 +1,18 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.4000  prec@K=0.0006  accepted=11  auc=0.7644  uauc=0.7475  loss=0.7663  (55.5s)
+Round    2/30  coverage=0.4000  prec@K=0.0006  accepted=10  auc=0.6742  uauc=0.6476  loss=0.7661  (35.8s)
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in run_online_simulation
+    pool = [v for v in range(n_nodes) if v not in exclude]
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in <listcomp>
+    pool = [v for v in range(n_nodes) if v not in exclude]
+MemoryError

@@ -95,7 +95,25 @@
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/compare_constant_lr.py --seeds 0 --metric \"mrr@1\" 2>&1)",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; Set-Location \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; conda run -n gnn python scripts/run_constlr5e5_concat_sweep.py --seeds 0 --workers 4 2>&1)",
       "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_show_new_model_results.py)",
-      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_compare_vs_heuristic.py)"
+      "PowerShell(cd \"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; $env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/_compare_vs_heuristic.py)",
+      "PowerShell(Get-CimInstance *)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/orchestrator.py --spec configs/sweep_spec_ir40_constlr5e5.yaml --dry_run --workers 1 2>&1 | Select-Object -First 50)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u scripts/orchestrator.py --spec configs/sweep_spec_ir40_constlr5e5.yaml --workers 8 2>&1 | Tee-Object -FilePath results/orchestrator/ir40_constlr5e5_run.log)",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/reset_failed.py \"results/orchestrator/ir40_constlr5e5/experiments.db\")",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/reset_failed.py --help 2>&1; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -c \"import pandas as pd; df = pd.read_csv\\('results/orchestrator/ir40_constlr5e5/results.csv'\\); print\\(df.columns.tolist\\(\\)\\)\")",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/show_results.py \"results/orchestrator/ir40_constlr5e5/results.csv\" \"seal\")",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/check_db.py \"results/orchestrator/ir40_constlr5e5/experiments.db\" \"email_eu\")",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/show_results_sorted.py)",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/compare_models.py)",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/compare_auc.py)",
+      "PowerShell(& \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" scripts/compare_uauc_heuristic.py)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\Users\\\\12143\\\\miniconda3\\\\envs\\\\gnn\\\\python.exe scripts/check_db.py results/orchestrator/ir40_constlr5e5/experiments.db email_eu)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; & \"C:\\\\Users\\\\12143\\\\miniconda3\\\\envs\\\\gnn\\\\python.exe\" scripts/check_db.py results/orchestrator/ir40_constlr5e5/experiments.db email_eu)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/test_seal_drnl_fast.py 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/test_seal_drnl_fast.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/bench_seal_drnl.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/test_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/bench_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")"
     ]
   }
 }

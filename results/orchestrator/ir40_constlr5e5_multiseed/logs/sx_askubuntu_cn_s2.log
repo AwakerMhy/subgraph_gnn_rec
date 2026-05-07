@@ -1,0 +1,36 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.4000  prec@K=0.0006  accepted=9  auc=0.9790  uauc=0.7966  loss=nan  (15.6s)
+Round    2/30  coverage=0.4000  prec@K=0.0008  accepted=12  auc=0.9780  uauc=0.6889  loss=nan  (13.5s)
+Round    3/30  coverage=0.4001  prec@K=0.0012  accepted=17  auc=0.9641  uauc=0.6056  loss=nan  (17.2s)
+Round    4/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9917  uauc=0.7986  loss=nan  (20.8s)
+Round    5/30  coverage=0.4001  prec@K=0.0007  accepted=11  auc=0.9565  uauc=0.7693  loss=nan  (23.3s)
+Round    6/30  coverage=0.4001  prec@K=0.0009  accepted=13  auc=0.9821  uauc=0.7863  loss=nan  (25.9s)
+Round    7/30  coverage=0.4001  prec@K=0.0007  accepted=11  auc=0.9669  uauc=0.8219  loss=nan  (29.9s)
+Round    8/30  coverage=0.4002  prec@K=0.0006  accepted=9  auc=0.9414  uauc=0.6858  loss=nan  (37.9s)
+Round    9/30  coverage=0.4002  prec@K=0.0006  accepted=9  auc=0.9470  uauc=0.6523  loss=nan  (44.8s)
+Round   10/30  coverage=0.4002  prec@K=0.0009  accepted=13  auc=0.9688  uauc=0.7039  loss=nan  (45.0s)
+Round   11/30  coverage=0.4002  prec@K=0.0009  accepted=13  auc=0.9679  uauc=0.6620  loss=nan  (57.1s)
+Round   12/30  coverage=0.4002  prec@K=0.0006  accepted=9  auc=0.9972  uauc=0.8056  loss=nan  (52.0s)
+Round   13/30  coverage=0.4003  prec@K=0.0012  accepted=18  auc=0.9656  uauc=0.5878  loss=nan  (53.8s)
+Round   14/30  coverage=0.4003  prec@K=0.0007  accepted=11  auc=0.9719  uauc=0.6409  loss=nan  (55.8s)
+Round   15/30  coverage=0.4003  prec@K=0.0009  accepted=14  auc=0.9818  uauc=0.7063  loss=nan  (59.5s)
+Round   16/30  coverage=0.4004  prec@K=0.0013  accepted=19  auc=0.9588  uauc=0.6535  loss=nan  (62.0s)
+Round   17/30  coverage=0.4004  prec@K=0.0010  accepted=14  auc=0.9679  uauc=0.7107  loss=nan  (66.2s)
+Round   18/30  coverage=0.4004  prec@K=0.0010  accepted=15  auc=0.9912  uauc=0.7211  loss=nan  (70.5s)
+Round   19/30  coverage=0.4004  prec@K=0.0006  accepted=9  auc=0.9968  uauc=0.6944  loss=nan  (73.8s)
+Round   20/30  coverage=0.4005  prec@K=0.0011  accepted=16  auc=0.9916  uauc=0.8980  loss=nan  (78.6s)
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in run_online_simulation
+    pool = [v for v in range(n_nodes) if v not in exclude]
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in <listcomp>
+    pool = [v for v in range(n_nodes) if v not in exclude]
+MemoryError

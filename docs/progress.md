@@ -1,7 +1,15 @@
 # docs/progress.md — 历史变更日志
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-04-29 (2)
+> 最后更新：2026-05-06
+
+[2026-05-06 14:00] [SEAL 在线仿真加速：方案 A（DRNL 预计算 + 真批量 forward_batch）] [src/baseline/seal.py, src/online/trainer.py] [完成]
+- 根因：SEALModel.forward_batch 对每张子图串行调用 _compute_drnl（Python deque BFS）+ 独立 GIN forward，GPU 利用率接近 0%
+- 方案 B（向量化 BFS）实测无效（n=32 时 numpy matmul 开销 > Python deque，仅 1.4x）
+- 方案 A：_build_flat_batched_graph 新增 Phase 4，用 _compute_drnl_for_pairs 预计算 DRNL 标签写入 g.ndata["_drnl"]；forward_batch 增加快速路径，直接在整张批图上跑 GIN + dgl.mean_nodes
+- GPU 实测加速：batch=64 → 52.8x，batch=256 → 70.2x，batch=512 → 61.5x；CPU 同量级
+- 正确性验证：快慢路径输出差异为 0，标签与逐图 _compute_drnl 完全一致（30个子图）
+- 降级路径保留兼容性（无 _drnl 时走原串行逻辑）
 
 [2026-04-27 17:30] [算法对比实验 + ε-greedy 扫描（4数据集，init=0.25/0.30）] [scripts/run_algo_sweep.py, scripts/run_eps_sweep.py, results/online/algo_sweep*, results/online/eps_sweep] [完成]
 - 11种算法（ground_truth/gnn/gnn_sum/gnn_concat/node_emb/mlp/cn/aa/jaccard/pa/random）× 4数据集对比

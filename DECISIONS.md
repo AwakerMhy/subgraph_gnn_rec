@@ -1,9 +1,22 @@
 # DECISIONS — 架构决策记录
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-05-04
+> 最后更新：2026-05-06
 >
 > **做新决策前必读，遇到看似"奇怪"的设计先查这里。**
+
+---
+
+## [2026-05-06] SEAL forward_batch：DRNL 预计算 + 真批量 GIN
+
+- **背景**：在线仿真中 SEAL 比 GNN 慢 50-70×，每轮推荐超时
+- **备选方案**：
+  - 方案 B（向量化 BFS）：将 Python deque 替换为 numpy 稠密矩阵 BFS，实测对 n=32 小图无效（1.0-1.4x），numpy 函数调用开销抵消收益
+  - 方案 A（预计算 + 批量 forward）：在 trainer._build_flat_batched_graph 预计算 DRNL 标签，forward_batch 在整张批图上一次 GIN forward
+- **决定**：采用方案 A，保留方案 B 的代码（numpy BFS 已替代 deque，对正确性无害）
+- **原因**：瓶颈在 512 次串行 GPU kernel launch，不在 BFS 本身；方案 A 直接消除串行循环，GPU 实测 50-70×
+- **后果**：`_build_flat_batched_graph` 始终多一次 DRNL CPU 计算（对非 SEAL 模型是多余开销，约 +5ms/batch，可接受）；`forward_batch` 有快慢两路，`_drnl` 不在 ndata 时自动降级兼容
+- **状态**：active
 
 ---
 

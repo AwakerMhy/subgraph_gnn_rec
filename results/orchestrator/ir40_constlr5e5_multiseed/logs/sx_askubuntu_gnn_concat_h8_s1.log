@@ -1,0 +1,30 @@
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 145, in run_online_simulation
+    star_edges, n_nodes, node_feat = _load_dataset(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 75, in _load_dataset
+    edges_df = pd.read_csv(path)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 626, in _read
+    return parser.read(nrows)
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1923, in read
+    ) = self._engine.read(  # type: ignore[attr-defined]
+  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\c_parser_wrapper.py", line 234, in read
+    chunks = self._reader.read_low_memory(nrows)
+  File "pandas/_libs/parsers.pyx", line 838, in pandas._libs.parsers.TextReader.read_low_memory
+  File "pandas/_libs/parsers.pyx", line 921, in pandas._libs.parsers.TextReader._read_rows
+  File "pandas/_libs/parsers.pyx", line 1066, in pandas._libs.parsers.TextReader._convert_column_data
+  File "pandas/_libs/parsers.pyx", line 1120, in pandas._libs.parsers.TextReader._convert_tokens
+  File "pandas/_libs/parsers.pyx", line 1222, in pandas._libs.parsers.TextReader._convert_with_dtype
+  File "pandas/_libs/parsers.pyx", line 1833, in pandas._libs.parsers._try_int64
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.00 MiB for an array with shape (131072,) and data type int64

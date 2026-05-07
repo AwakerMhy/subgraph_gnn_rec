@@ -124,6 +124,81 @@ def _extract_edges_csr_fast(
     return np.concatenate(src_parts), np.concatenate(dst_parts)
 
 
+def _compute_drnl_for_pairs(
+    indptr: np.ndarray,
+    indices: np.ndarray,
+    all_sub_nodes: list[np.ndarray],
+    pair_node_offset: list[int],
+    u_abs: list[int],
+    v_abs: list[int],
+    total_nodes: int,
+) -> np.ndarray:
+    """为所有 pairs 预计算 DRNL 标签，返回 (total_nodes,) int64 array。
+
+    逐 pair 顺序执行；每个 pair 用 uint8 稠密矩阵 BFS（n_p ≤ 32，≤3 次迭代）。
+    结果存入 g.ndata["_drnl"]，供 SEALModel.forward_batch 快速路径使用。
+    """
+    labels_out = np.zeros(total_nodes, dtype=np.int64)
+
+    for p, sub_nodes in enumerate(all_sub_nodes):
+        n_p = len(sub_nodes)
+        offset = pair_node_offset[p]
+        u_local = u_abs[p] - offset
+        v_local = v_abs[p] - offset
+
+        # 无向局部邻接矩阵（uint8，n_p ≤ 32，不会溢出）
+        A = np.zeros((n_p, n_p), dtype=np.uint8)
+        for li in range(n_p):
+            g_node = int(sub_nodes[li])
+            rs = int(indptr[g_node])
+            re = int(indptr[g_node + 1])
+            if rs == re:
+                continue
+            nbrs = indices[rs:re]
+            pos = np.searchsorted(sub_nodes, nbrs)
+            safe = np.clip(pos, 0, n_p - 1)
+            valid = (pos < n_p) & (sub_nodes[safe] == nbrs)
+            if valid.any():
+                dst = pos[valid]
+                A[li, dst] = 1
+                A[dst, li] = 1
+
+        def _bfs(start: int) -> np.ndarray:
+            d = np.full(n_p, -1, dtype=np.int32)
+            d[start] = 0
+            f = np.zeros(n_p, dtype=np.uint8)
+            f[start] = 1
+            dist = 1
+            while True:
+                c = A @ f
+                new = (c > 0) & (d < 0)
+                if not new.any():
+                    break
+                d[new] = dist
+                f[:] = 0
+                f[new] = 1
+                dist += 1
+            return d
+
+        du = _bfs(u_local)
+        dv = _bfs(v_local)
+
+        lbl = np.zeros(n_p, dtype=np.int64)
+        lbl[u_local] = 1
+        lbl[v_local] = 1
+        both = (du >= 0) & (dv >= 0)
+        both[u_local] = False
+        both[v_local] = False
+        if both.any():
+            s = (du + dv)[both]
+            m = np.minimum(du, dv)[both]
+            lbl[both] = 1 + m + (s // 2) * ((s - 1) // 2)
+
+        labels_out[offset: offset + n_p] = lbl
+
+    return labels_out
+
+
 _EMPTY_INT32: np.ndarray = np.empty(0, dtype=np.int32)
 
 
@@ -335,6 +410,13 @@ class OnlineTrainer:
             if str(self.device) != "cpu":
                 gathered = gathered.pin_memory()
             g.ndata["node_feat"] = gathered
+
+        # ── Phase 4: DRNL 标签预计算（供 SEALModel.forward_batch 快速路径）────────
+        drnl = _compute_drnl_for_pairs(
+            indptr, indices, all_sub_nodes,
+            pair_node_offset, u_abs, v_abs, node_offset,
+        )
+        g.ndata["_drnl"] = torch.from_numpy(drnl)
 
         return g
 
