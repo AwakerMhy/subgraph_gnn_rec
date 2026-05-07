@@ -1,22 +1,38 @@
+=== sx_askubuntu_gat_emb_s42  started 2026-05-07T21:33:21 ===
+
 C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
   warnings.warn(
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
-Traceback (most recent call last):
-  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 399, in run_online_simulation
-    recall.precompute_for_users(list(U))
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\recall\heuristic.py", line 117, in precompute_for_users
-    CN_dense = np.asarray(CN.todense(), dtype=np.float32)
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 959, in todense
-    return self._ascontainer(self.toarray(order=order, out=out))
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_compressed.py", line 1106, in toarray
-    out = self._process_toarray_args(order, out)
-  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 1327, in _process_toarray_args
-    return np.zeros(self.shape, dtype=self.dtype, order=order)
-numpy._core._exceptions._ArrayMemoryError: Unable to allocate 943. MiB for an array with shape (1572, 157222) and data type float32
+Round    1/30  coverage=0.4000  prec@K=0.0003  accepted=4  auc=0.0941  uauc=0.7361  loss=0.7038  (19.4s)
+Round    2/30  coverage=0.4000  prec@K=0.0006  accepted=9  auc=0.0804  uauc=0.6215  loss=0.7036  (12.2s)
+Round    3/30  coverage=0.4000  prec@K=0.0003  accepted=5  auc=0.2586  uauc=0.5667  loss=0.7035  (12.1s)
+Round    4/30  coverage=0.4000  prec@K=0.0003  accepted=4  auc=0.1732  uauc=0.9815  loss=0.7033  (14.1s)
+Round    5/30  coverage=0.4000  prec@K=0.0003  accepted=4  auc=0.1026  uauc=0.6111  loss=0.7032  (15.5s)
+Round    6/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.1106  uauc=0.6944  loss=0.7030  (18.0s)
+Round    7/30  coverage=0.4001  prec@K=0.0003  accepted=4  auc=0.0740  uauc=0.7083  loss=0.7029  (20.3s)
+Round    8/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.0695  uauc=0.6597  loss=0.7027  (22.4s)
+Round    9/30  coverage=0.4001  prec@K=0.0002  accepted=3  auc=0.0622  uauc=0.6296  loss=0.7026  (24.3s)
+Round   10/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.1043  uauc=0.8889  loss=0.7024  (27.7s)
+Round   11/30  coverage=0.4001  prec@K=0.0001  accepted=2  auc=0.0913  uauc=0.6667  loss=0.7023  (35.3s)
+Round   12/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.0593  uauc=0.5778  loss=0.7021  (30.8s)
+Round   13/30  coverage=0.4001  prec@K=0.0004  accepted=6  auc=0.1030  uauc=0.5833  loss=0.7020  (33.3s)
+Round   14/30  coverage=0.4001  prec@K=0.0004  accepted=6  auc=0.0785  uauc=0.6204  loss=0.7018  (34.6s)
+Round   15/30  coverage=0.4002  prec@K=0.0007  accepted=10  auc=0.0916  uauc=0.5988  loss=0.7016  (37.8s)
+Round   16/30  coverage=0.4002  prec@K=0.0007  accepted=11  auc=0.0871  uauc=0.6444  loss=0.7015  (40.6s)
+Round   17/30  coverage=0.4002  prec@K=0.0005  accepted=8  auc=0.1081  uauc=0.7014  loss=0.7014  (42.2s)
+Round   18/30  coverage=0.4002  prec@K=0.0006  accepted=9  auc=0.0681  uauc=0.8148  loss=0.7012  (45.6s)
+Round   19/30  coverage=0.4002  prec@K=0.0004  accepted=6  auc=0.0531  uauc=0.8125  loss=0.7011  (47.9s)
+Round   20/30  coverage=0.4002  prec@K=0.0007  accepted=11  auc=0.0967  uauc=0.7172  loss=0.7009  (49.3s)
+Round   21/30  coverage=0.4002  prec@K=0.0002  accepted=3  auc=0.0545  uauc=0.9630  loss=0.7007  (59.8s)
+Round   22/30  coverage=0.4003  prec@K=0.0004  accepted=6  auc=0.0672  uauc=0.6852  loss=0.7006  (53.9s)
+Round   23/30  coverage=0.4003  prec@K=0.0002  accepted=3  auc=0.0836  uauc=0.5926  loss=0.7004  (55.8s)
+Round   24/30  coverage=0.4003  prec@K=0.0009  accepted=13  auc=0.1163  uauc=0.5023  loss=0.7002  (57.9s)
+Round   25/30  coverage=0.4003  prec@K=0.0003  accepted=5  auc=0.0770  uauc=0.5778  loss=0.7001  (61.4s)
+Round   26/30  coverage=0.4003  prec@K=0.0005  accepted=7  auc=0.0769  uauc=0.6030  loss=0.6999  (62.4s)
+Round   27/30  coverage=0.4003  prec@K=0.0005  accepted=8  auc=0.0802  uauc=0.8542  loss=0.6998  (62.4s)
+Round   28/30  coverage=0.4003  prec@K=0.0002  accepted=3  auc=0.0863  uauc=0.4074  loss=0.6997  (65.7s)
+Round   29/30  coverage=0.4003  prec@K=0.0003  accepted=4  auc=0.0440  uauc=0.5972  loss=0.6995  (67.0s)
+Round   30/30  coverage=0.4003  prec@K=0.0007  accepted=11  auc=0.1026  uauc=0.7071  loss=0.6993  (70.2s)
+
+结果已写入 results\orchestrator\runs\ir40_constlr5e5_multiseed\sx_askubuntu\gat_emb_s42/rounds.csv

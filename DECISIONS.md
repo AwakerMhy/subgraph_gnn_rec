@@ -1,9 +1,22 @@
 # DECISIONS — 架构决策记录
 
 > 创建时间：2026-04-08 15:30
-> 最后更新：2026-05-06
+> 最后更新：2026-05-07
 >
 > **做新决策前必读，遇到看似"奇怪"的设计先查这里。**
+
+---
+
+## [2026-05-07] 新增双向 2-hop 召回策略 two_hop_bidir_random
+
+- **背景**：原 `two_hop_random` 仅走出边方向（u→z→v），在低出度用户或稀疏有向图上候选池极小，coverage 受限
+- **备选方案**：
+  - 仅扩展第一跳：N_bidir(u) 取出+入，但第二跳仍只走出边——候选池扩大有限，语义不一致
+  - 全双向（本方案）：第一跳和第二跳均取 N_bidir = N_out ∪ N_in，等价于在无向化图上做 2-hop
+- **决定**：全双向，新增 `TwoHopBidirRandomRecall`，不修改原 `TwoHopRandomRecall`
+- **原因**：保持原版语义不变，双向版作为独立 variant 供对比实验；排除条件维持"v∈N_out(u)"（已关注），不排除反向已关注节点（那些是合法推荐目标）
+- **后果**：大图路径矩阵从 `A[users]@A` 改为 `A_sym[users]@A_sym`（A_sym = A+A^T 二值化），内存和计算量约 2×；config 中用 `recall.method: two_hop_bidir_random` 启用
+- **状态**：active
 
 ---
 

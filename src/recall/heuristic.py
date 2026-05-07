@@ -71,6 +71,41 @@ def _build_sparse_adj(time_adj: "TimeAdjacency", n: int):
     return None
 
 
+def _build_sparse_adj_sym(time_adj: "TimeAdjacency", n: int):
+    """构建对称邻接矩阵 A_sym = clip(A + A^T, 0, 1)，用于双向 2-hop 计算。"""
+    A = _build_sparse_adj(time_adj, n)
+    if A is None:
+        return None
+    A_sym = (A + A.T).astype(np.float32)
+    A_sym.data[:] = 1.0  # 消除 A+A^T 中值为 2 的双向重复边，保持 0/1
+    return A_sym
+
+
+def _two_hop_bidir_scores(
+    u: int,
+    cutoff_time: float,
+    time_adj: "TimeAdjacency",
+) -> dict[int, float]:
+    """双向 2-hop 候选集（小图 fallback）。
+
+    N_bidir(u) = N_out(u) ∪ N_in(u)；候选 v 满足 ∃z∈N_bidir(u) 使 v∈N_bidir(z)。
+    排除条件：v==u 或 u→v 已存在（v∈N_out(u)）。
+    """
+    n_out_u: set[int] = set(time_adj.out_neighbors(u, cutoff_time))
+    n_in_u: set[int] = set(time_adj.in_neighbors(u, cutoff_time))
+    n1 = n_out_u | n_in_u
+    if not n1:
+        return {}
+    exclude = n_out_u | {u}
+    scores: dict[int, float] = {}
+    for z in n1:
+        z_bidir = set(time_adj.out_neighbors(z, cutoff_time)) | set(time_adj.in_neighbors(z, cutoff_time))
+        for v in z_bidir:
+            if v not in exclude:
+                scores[v] = scores.get(v, 0.0) + 1.0
+    return scores
+
+
 # 小图（节点数 <= 阈值）使用逐用户 set intersection，大图使用 sparse matmul
 # 经验阈值：todense() 分配 n² 内存，n<10k 时 set ops 更快
 _SPARSE_MATMUL_THRESHOLD = 10_000
@@ -158,6 +193,70 @@ class TwoHopRandomRecall(CommonNeighborsRecall):
             cands = [int(v) for v in nonzero if v not in exclude]
         else:
             scores_d = _two_hop_scores(u, cutoff_time, self._time_adj, use_adamic_adar=False)
+            cands = list(scores_d.keys())
+
+        if not cands:
+            return []
+        if len(cands) <= top_k:
+            return [(v, 1.0) for v in cands]
+        chosen = self._rng.choice(len(cands), size=top_k, replace=False)
+        return [(cands[i], 1.0) for i in chosen]
+
+
+# ── TwoHopBidirRandomRecall ──────────────────────────────────────────────────
+
+class TwoHopBidirRandomRecall(RecallBase):
+    """双向 2-hop 候选池随机召回。
+
+    以无向方式处理有向图：N_bidir(u) = N_out(u) ∪ N_in(u)，
+    候选 v 满足 ∃z∈N_bidir(u) 使 v∈N_bidir(z)。
+    从候选池中随机采样 top_k 个（不按路径数排序）。
+
+    排除条件：v==u 或 u→v 已存在（v∈N_out(u)）。不排除 v→u 已存在的节点。
+
+    大图路径（n>10k）：A_sym = A + A^T，C = A_sym[users] @ A_sym，
+    1 次矩阵乘法覆盖所有活跃用户。
+    """
+
+    def __init__(self, time_adj: "TimeAdjacency", n_nodes: int, seed: int = 42) -> None:
+        self._time_adj = time_adj
+        self._n_nodes = n_nodes
+        self._A_sym = _build_sparse_adj_sym(time_adj, n_nodes)
+        self._cache: dict[int, list[int] | None] = {}
+        self._last_n_edges: int = -1
+        self._rng = np.random.default_rng(seed)
+
+    def update_graph(self, round_idx: int) -> None:  # noqa: ARG002
+        cur_edges = self._time_adj.num_edges()
+        if cur_edges == self._last_n_edges:
+            self._cache.clear()
+            return
+        self._last_n_edges = cur_edges
+        self._cache.clear()
+        self._A_sym = _build_sparse_adj_sym(self._time_adj, self._n_nodes)
+
+    def precompute_for_users(self, users: list[int]) -> None:
+        if not users:
+            return
+        if self._A_sym is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
+            # 小图：标记为 None，candidates() 走 fallback
+            for u in users:
+                self._cache[u] = None
+            return
+        # 大图：1 次 A_sym[users] @ A_sym，缓存候选列表
+        users_arr = np.array(users, dtype=np.int32)
+        C_dense = np.asarray(self._A_sym[users_arr].dot(self._A_sym).todense(), dtype=np.float32)
+        for i, u in enumerate(users):
+            exclude = set(self._time_adj.out_neighbors(u)) | {u}
+            nonzero = np.where(C_dense[i] > 0)[0]
+            self._cache[u] = [int(v) for v in nonzero if v not in exclude]
+
+    def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
+        cached = self._cache.get(u)
+        if cached is not None:
+            cands = cached
+        else:
+            scores_d = _two_hop_bidir_scores(u, cutoff_time, self._time_adj)
             cands = list(scores_d.keys())
 
         if not cands:

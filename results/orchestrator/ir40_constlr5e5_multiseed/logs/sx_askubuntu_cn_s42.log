@@ -1,36 +1,38 @@
+=== sx_askubuntu_cn_s42  started 2026-05-07T21:20:31 ===
+
 C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
   warnings.warn(
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
-Round    1/30  coverage=0.4000  prec@K=0.0005  accepted=8  auc=0.9529  uauc=0.5556  loss=nan  (14.7s)
-Round    2/30  coverage=0.4000  prec@K=0.0010  accepted=15  auc=0.9794  uauc=0.7859  loss=nan  (13.6s)
-Round    3/30  coverage=0.4001  prec@K=0.0007  accepted=11  auc=0.9938  uauc=0.6786  loss=nan  (17.8s)
-Round    4/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9498  uauc=0.6349  loss=nan  (20.2s)
-Round    5/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9449  uauc=0.6128  loss=nan  (23.5s)
-Round    6/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9743  uauc=0.7130  loss=nan  (26.1s)
-Round    7/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.9934  uauc=0.7969  loss=nan  (29.6s)
-Round    8/30  coverage=0.4001  prec@K=0.0009  accepted=14  auc=0.9306  uauc=0.6816  loss=nan  (39.6s)
-Round    9/30  coverage=0.4002  prec@K=0.0008  accepted=12  auc=0.9900  uauc=0.8311  loss=nan  (42.6s)
-Round   10/30  coverage=0.4002  prec@K=0.0005  accepted=8  auc=0.9426  uauc=0.7619  loss=nan  (44.5s)
-Round   11/30  coverage=0.4002  prec@K=0.0007  accepted=10  auc=0.9874  uauc=0.7207  loss=nan  (54.4s)
-Round   12/30  coverage=0.4002  prec@K=0.0010  accepted=15  auc=0.9770  uauc=0.6766  loss=nan  (50.1s)
-Round   13/30  coverage=0.4002  prec@K=0.0007  accepted=10  auc=0.9634  uauc=0.6921  loss=nan  (53.5s)
-Round   14/30  coverage=0.4003  prec@K=0.0008  accepted=11  auc=0.9384  uauc=0.8283  loss=nan  (53.9s)
-Round   15/30  coverage=0.4003  prec@K=0.0008  accepted=12  auc=0.9450  uauc=0.5955  loss=nan  (58.5s)
-Round   16/30  coverage=0.4003  prec@K=0.0012  accepted=17  auc=0.9829  uauc=0.7912  loss=nan  (63.1s)
-Round   17/30  coverage=0.4003  prec@K=0.0007  accepted=10  auc=0.9899  uauc=0.6856  loss=nan  (64.9s)
-Round   18/30  coverage=0.4004  prec@K=0.0007  accepted=10  auc=0.9931  uauc=0.7960  loss=nan  (69.7s)
-Round   19/30  coverage=0.4004  prec@K=0.0005  accepted=8  auc=0.9558  uauc=0.6510  loss=nan  (72.1s)
-Round   20/30  coverage=0.4004  prec@K=0.0014  accepted=20  auc=0.9576  uauc=0.7222  loss=nan  (77.2s)
-Traceback (most recent call last):
-  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in run_online_simulation
-    pool = [v for v in range(n_nodes) if v not in exclude]
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in <listcomp>
-    pool = [v for v in range(n_nodes) if v not in exclude]
-MemoryError
+Round    1/30  coverage=0.4000  prec@K=0.0005  accepted=8  auc=0.9529  uauc=0.5556  loss=nan  (9.8s)
+Round    2/30  coverage=0.4000  prec@K=0.0010  accepted=15  auc=0.9793  uauc=0.7859  loss=nan  (2.3s)
+Round    3/30  coverage=0.4001  prec@K=0.0007  accepted=11  auc=0.9938  uauc=0.6786  loss=nan  (2.3s)
+Round    4/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9499  uauc=0.6349  loss=nan  (3.4s)
+Round    5/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9448  uauc=0.6128  loss=nan  (4.9s)
+Round    6/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.9743  uauc=0.7130  loss=nan  (6.2s)
+Round    7/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.9934  uauc=0.7969  loss=nan  (6.8s)
+Round    8/30  coverage=0.4001  prec@K=0.0009  accepted=13  auc=0.9725  uauc=0.6968  loss=nan  (8.1s)
+Round    9/30  coverage=0.4002  prec@K=0.0008  accepted=12  auc=0.9900  uauc=0.8311  loss=nan  (9.3s)
+Round   10/30  coverage=0.4002  prec@K=0.0005  accepted=8  auc=0.9429  uauc=0.7619  loss=nan  (11.2s)
+Round   11/30  coverage=0.4002  prec@K=0.0007  accepted=10  auc=0.9874  uauc=0.7207  loss=nan  (19.3s)
+Round   12/30  coverage=0.4002  prec@K=0.0010  accepted=15  auc=0.9770  uauc=0.6766  loss=nan  (15.3s)
+Round   13/30  coverage=0.4002  prec@K=0.0007  accepted=10  auc=0.9636  uauc=0.6921  loss=nan  (17.1s)
+Round   14/30  coverage=0.4003  prec@K=0.0007  accepted=10  auc=0.9947  uauc=0.8611  loss=nan  (18.1s)
+Round   15/30  coverage=0.4003  prec@K=0.0008  accepted=12  auc=0.9448  uauc=0.5955  loss=nan  (20.4s)
+Round   16/30  coverage=0.4003  prec@K=0.0012  accepted=17  auc=0.9830  uauc=0.7912  loss=nan  (22.6s)
+Round   17/30  coverage=0.4003  prec@K=0.0007  accepted=10  auc=0.9899  uauc=0.6856  loss=nan  (24.7s)
+Round   18/30  coverage=0.4003  prec@K=0.0007  accepted=10  auc=0.9930  uauc=0.7960  loss=nan  (28.1s)
+Round   19/30  coverage=0.4004  prec@K=0.0005  accepted=8  auc=0.9560  uauc=0.6510  loss=nan  (28.8s)
+Round   20/30  coverage=0.4004  prec@K=0.0014  accepted=20  auc=0.9576  uauc=0.7222  loss=nan  (31.0s)
+Round   21/30  coverage=0.4004  prec@K=0.0008  accepted=12  auc=0.9950  uauc=0.5629  loss=nan  (40.6s)
+Round   22/30  coverage=0.4004  prec@K=0.0009  accepted=13  auc=0.9950  uauc=0.7607  loss=nan  (35.2s)
+Round   23/30  coverage=0.4005  prec@K=0.0005  accepted=8  auc=0.9882  uauc=0.6458  loss=nan  (37.9s)
+Round   24/30  coverage=0.4005  prec@K=0.0013  accepted=19  auc=0.9780  uauc=0.7814  loss=nan  (39.8s)
+Round   25/30  coverage=0.4005  prec@K=0.0003  accepted=5  auc=0.9376  uauc=0.4000  loss=nan  (42.4s)
+Round   26/30  coverage=0.4005  prec@K=0.0007  accepted=10  auc=0.9798  uauc=0.8248  loss=nan  (43.3s)
+Round   27/30  coverage=0.4005  prec@K=0.0005  accepted=8  auc=0.9765  uauc=0.7500  loss=nan  (45.2s)
+Round   28/30  coverage=0.4006  prec@K=0.0006  accepted=9  auc=0.9901  uauc=0.7654  loss=nan  (47.0s)
+Round   29/30  coverage=0.4006  prec@K=0.0008  accepted=11  auc=0.9699  uauc=0.7944  loss=nan  (49.0s)
+Round   30/30  coverage=0.4006  prec@K=0.0006  accepted=9  auc=0.9742  uauc=0.7901  loss=nan  (52.1s)
+
+结果已写入 results\orchestrator\runs\ir40_constlr5e5_multiseed\sx_askubuntu\cn_s42/rounds.csv

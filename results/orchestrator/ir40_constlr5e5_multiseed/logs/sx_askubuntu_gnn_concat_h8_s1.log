@@ -1,30 +1,38 @@
+=== sx_askubuntu_gnn_concat_h8_s1  started 2026-05-07T22:31:48 ===
+
 C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
   warnings.warn(
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
-Traceback (most recent call last):
-  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 145, in run_online_simulation
-    star_edges, n_nodes, node_feat = _load_dataset(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 75, in _load_dataset
-    edges_df = pd.read_csv(path)
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1026, in read_csv
-    return _read(filepath_or_buffer, kwds)
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 626, in _read
-    return parser.read(nrows)
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\readers.py", line 1923, in read
-    ) = self._engine.read(  # type: ignore[attr-defined]
-  File "C:\conda\envs\gnn\lib\site-packages\pandas\io\parsers\c_parser_wrapper.py", line 234, in read
-    chunks = self._reader.read_low_memory(nrows)
-  File "pandas/_libs/parsers.pyx", line 838, in pandas._libs.parsers.TextReader.read_low_memory
-  File "pandas/_libs/parsers.pyx", line 921, in pandas._libs.parsers.TextReader._read_rows
-  File "pandas/_libs/parsers.pyx", line 1066, in pandas._libs.parsers.TextReader._convert_column_data
-  File "pandas/_libs/parsers.pyx", line 1120, in pandas._libs.parsers.TextReader._convert_tokens
-  File "pandas/_libs/parsers.pyx", line 1222, in pandas._libs.parsers.TextReader._convert_with_dtype
-  File "pandas/_libs/parsers.pyx", line 1833, in pandas._libs.parsers._try_int64
-numpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.00 MiB for an array with shape (131072,) and data type int64
+Round    1/30  coverage=0.4000  prec@K=0.0003  accepted=5  auc=0.7809  uauc=0.6444  loss=0.7519  (17.3s)
+Round    2/30  coverage=0.4000  prec@K=0.0005  accepted=8  auc=0.7855  uauc=0.4694  loss=0.7514  (9.7s)
+Round    3/30  coverage=0.4000  prec@K=0.0003  accepted=5  auc=0.7959  uauc=0.7333  loss=0.7512  (10.7s)
+Round    4/30  coverage=0.4000  prec@K=0.0003  accepted=4  auc=0.6436  uauc=0.4861  loss=0.7501  (11.5s)
+Round    5/30  coverage=0.4000  prec@K=0.0003  accepted=4  auc=0.7931  uauc=0.6806  loss=0.7505  (12.8s)
+Round    6/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.7180  uauc=0.5389  loss=0.7498  (14.4s)
+Round    7/30  coverage=0.4001  prec@K=0.0002  accepted=3  auc=0.8394  uauc=0.6667  loss=0.7492  (17.0s)
+Round    8/30  coverage=0.4001  prec@K=0.0001  accepted=2  auc=0.4480  uauc=0.5000  loss=0.7487  (18.0s)
+Round    9/30  coverage=0.4001  prec@K=0.0004  accepted=6  auc=0.7758  uauc=0.5952  loss=0.7485  (21.1s)
+Round   10/30  coverage=0.4001  prec@K=0.0003  accepted=4  auc=0.8771  uauc=0.7361  loss=0.7474  (23.1s)
+Round   11/30  coverage=0.4001  prec@K=0.0001  accepted=2  auc=0.8319  uauc=0.6944  loss=0.7475  (32.5s)
+Round   12/30  coverage=0.4001  prec@K=0.0004  accepted=6  auc=0.8304  uauc=0.6019  loss=0.7470  (27.0s)
+Round   13/30  coverage=0.4001  prec@K=0.0003  accepted=5  auc=0.7293  uauc=0.7139  loss=0.7468  (28.8s)
+Round   14/30  coverage=0.4001  prec@K=0.0002  accepted=3  auc=0.6882  uauc=1.0000  loss=0.7463  (30.5s)
+Round   15/30  coverage=0.4001  prec@K=0.0003  accepted=4  auc=0.6068  uauc=0.3472  loss=0.7455  (33.2s)
+Round   16/30  coverage=0.4001  prec@K=0.0002  accepted=3  auc=0.4378  uauc=0.3333  loss=0.7453  (36.9s)
+Round   17/30  coverage=0.4001  prec@K=0.0001  accepted=1  auc=0.3611  loss=0.7447  (38.3s)
+Round   18/30  coverage=0.4001  prec@K=0.0001  accepted=2  auc=0.8278  uauc=0.5000  loss=0.7444  (41.3s)
+Round   19/30  coverage=0.4001  prec@K=0.0005  accepted=8  auc=0.7063  uauc=0.4333  loss=0.7442  (44.5s)
+Round   20/30  coverage=0.4002  prec@K=0.0003  accepted=5  auc=0.5335  uauc=0.5556  loss=0.7430  (46.9s)
+Round   21/30  coverage=0.4002  prec@K=0.0001  accepted=2  auc=0.2515  uauc=0.4167  loss=0.7433  (53.3s)
+Round   22/30  coverage=0.4002  prec@K=0.0001  accepted=1  auc=0.4012  uauc=0.9444  loss=0.7433  (50.4s)
+Round   23/30  coverage=0.4002  prec@K=0.0001  accepted=2  auc=0.5876  uauc=0.2222  loss=0.7424  (51.3s)
+Round   24/30  coverage=0.4002  prec@K=0.0003  accepted=4  auc=0.6277  uauc=0.5139  loss=0.7416  (54.3s)
+Round   25/30  coverage=0.4002  prec@K=0.0004  accepted=6  auc=0.7803  uauc=0.6667  loss=0.7415  (55.9s)
+Round   26/30  coverage=0.4002  prec@K=0.0003  accepted=4  auc=0.9095  uauc=0.6250  loss=0.7407  (57.6s)
+Round   27/30  coverage=0.4002  prec@K=0.0001  accepted=2  auc=0.8017  uauc=0.5556  loss=0.7408  (57.9s)
+Round   28/30  coverage=0.4002  prec@K=0.0001  accepted=2  auc=0.5907  uauc=0.4444  loss=0.7398  (60.6s)
+Round   29/30  coverage=0.4002  prec@K=0.0003  accepted=5  auc=0.5768  uauc=0.5041  loss=0.7397  (64.1s)
+Round   30/30  coverage=0.4002  prec@K=0.0001  accepted=2  auc=0.8155  uauc=0.7222  loss=0.7401  (66.2s)
+
+结果已写入 results\orchestrator\runs\ir40_constlr5e5_multiseed\sx_askubuntu\gnn_concat_h8_s1/rounds.csv

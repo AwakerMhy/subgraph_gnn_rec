@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from src.recall.base import RecallBase
-from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall, GlobalRandomRecall, TwoHopRandomRecall
+from src.recall.heuristic import AdamicAdarRecall, CommonNeighborsRecall, GlobalRandomRecall, TwoHopBidirRandomRecall, TwoHopRandomRecall
 
 if TYPE_CHECKING:
     from src.graph.subgraph import TimeAdjacency
@@ -30,6 +30,8 @@ def build_recall(
         return CommonNeighborsRecall(time_adj, n_nodes)
     elif method == "two_hop_random":
         return TwoHopRandomRecall(time_adj, n_nodes, seed=cfg_recall.get("seed", 42))
+    elif method == "two_hop_bidir_random":
+        return TwoHopBidirRandomRecall(time_adj, n_nodes, seed=cfg_recall.get("seed", 42))
     elif method == "adamic_adar":
         return AdamicAdarRecall(time_adj, n_nodes)
     elif method == "global_random":
@@ -82,6 +84,7 @@ def build_recall(
         )
     else:
         raise ValueError(
-            f"未知召回策略: {method!r}，支持 'common_neighbors' | 'adamic_adar' | "
-            f"'ppr' | 'community_random' | 'global_random' | 'mixture'"
+            f"未知召回策略: {method!r}，支持 'common_neighbors' | 'two_hop_random' | "
+            f"'two_hop_bidir_random' | 'adamic_adar' | 'ppr' | 'community_random' | "
+            f"'global_random' | 'mixture'"
         )

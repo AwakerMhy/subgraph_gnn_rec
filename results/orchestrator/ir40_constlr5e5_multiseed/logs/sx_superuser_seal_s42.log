@@ -2,15 +2,35 @@ C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyW
   warnings.warn(
 C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import parse_version
-Traceback (most recent call last):
-  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 631, in <module>
-    run_online_simulation(cfg)
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in run_online_simulation
-    pool = [v for v in range(n_nodes) if v not in exclude]
-  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 413, in <listcomp>
-    pool = [v for v in range(n_nodes) if v not in exclude]
-MemoryError
+Round    1/30  coverage=0.4000  prec@K=0.0010  accepted=18  auc=0.8844  uauc=0.6624  loss=0.6463  (29.7s)
+Round    2/30  coverage=0.4000  prec@K=0.0010  accepted=17  auc=0.9520  uauc=0.6429  loss=0.6457  (15.2s)
+Round    3/30  coverage=0.4001  prec@K=0.0011  accepted=19  auc=0.9275  uauc=0.7222  loss=0.6456  (15.9s)
+Round    4/30  coverage=0.4001  prec@K=0.0011  accepted=20  auc=0.9495  uauc=0.7482  loss=0.6450  (19.8s)
+Round    5/30  coverage=0.4001  prec@K=0.0009  accepted=17  auc=0.8061  uauc=0.7237  loss=0.6443  (22.9s)
+Round    6/30  coverage=0.4001  prec@K=0.0012  accepted=22  auc=0.9622  uauc=0.7698  loss=0.6444  (25.0s)
+Round    7/30  coverage=0.4002  prec@K=0.0012  accepted=22  auc=0.9261  uauc=0.7404  loss=0.6438  (28.4s)
+Round    8/30  coverage=0.4002  prec@K=0.0008  accepted=15  auc=0.9570  uauc=0.7598  loss=0.6432  (32.4s)
+Round    9/30  coverage=0.4002  prec@K=0.0011  accepted=19  auc=0.9290  uauc=0.7506  loss=0.6430  (36.1s)
+Round   10/30  coverage=0.4002  prec@K=0.0010  accepted=17  auc=0.7756  uauc=0.7556  loss=0.6424  (38.7s)
+Round   11/30  coverage=0.4002  prec@K=0.0007  accepted=12  auc=0.8921  uauc=0.7384  loss=0.6418  (57.1s)
+Round   12/30  coverage=0.4003  prec@K=0.0015  accepted=26  auc=0.9600  uauc=0.7394  loss=0.6420  (44.2s)
+Round   13/30  coverage=0.4003  prec@K=0.0010  accepted=18  auc=0.8509  uauc=0.6430  loss=0.6413  (47.6s)
+Round   14/30  coverage=0.4003  prec@K=0.0013  accepted=23  auc=0.8984  uauc=0.8029  loss=0.6412  (49.3s)
+Round   15/30  coverage=0.4003  prec@K=0.0014  accepted=25  auc=0.9358  uauc=0.7944  loss=0.6406  (52.0s)
+Round   16/30  coverage=0.4004  prec@K=0.0007  accepted=12  auc=0.9276  uauc=0.9167  loss=0.6402  (55.1s)
+Round   17/30  coverage=0.4004  prec@K=0.0012  accepted=22  auc=0.8674  uauc=0.7531  loss=0.6397  (58.0s)
+Round   18/30  coverage=0.4004  prec@K=0.0006  accepted=10  auc=0.7332  uauc=0.5472  loss=0.6393  (60.9s)
+Round   19/30  coverage=0.4004  prec@K=0.0011  accepted=19  auc=0.8617  uauc=0.6777  loss=0.6391  (64.6s)
+Round   20/30  coverage=0.4004  prec@K=0.0012  accepted=21  auc=0.9305  uauc=0.7934  loss=0.6386  (67.3s)
+Round   21/30  coverage=0.4005  prec@K=0.0012  accepted=21  auc=0.8764  uauc=0.7996  loss=0.6382  (82.0s)
+Round   22/30  coverage=0.4005  prec@K=0.0008  accepted=15  auc=0.8392  uauc=0.7315  loss=0.6380  (73.3s)
+Round   23/30  coverage=0.4005  prec@K=0.0006  accepted=11  auc=0.6097  uauc=0.6667  loss=0.6374  (76.3s)
+Round   24/30  coverage=0.4005  prec@K=0.0013  accepted=23  auc=0.9120  uauc=0.6987  loss=0.6371  (76.2s)
+Round   25/30  coverage=0.4005  prec@K=0.0008  accepted=15  auc=0.6802  uauc=0.4975  loss=0.6366  (80.7s)
+Round   26/30  coverage=0.4006  prec@K=0.0007  accepted=13  auc=0.6563  uauc=0.7569  loss=0.6361  (83.0s)
+Round   27/30  coverage=0.4006  prec@K=0.0006  accepted=11  auc=0.5373  uauc=0.7507  loss=0.6355  (85.4s)
+Round   28/30  coverage=0.4006  prec@K=0.0007  accepted=13  auc=0.7902  uauc=0.6296  loss=0.6353  (89.5s)
+Round   29/30  coverage=0.4006  prec@K=0.0005  accepted=9  auc=0.7369  uauc=0.7083  loss=0.6348  (93.5s)
+Round   30/30  coverage=0.4006  prec@K=0.0006  accepted=11  auc=0.5961  uauc=0.6528  loss=0.6347  (94.8s)
+
+结果已写入 results\orchestrator\runs\ir40_constlr5e5_multiseed\sx_superuser\seal_s42/rounds.csv

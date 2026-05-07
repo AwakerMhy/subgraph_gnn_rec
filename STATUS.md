@@ -1,10 +1,10 @@
 # STATUS — ir40_constlr5e5_multiseed
 
-> 更新时间：2026-05-07 20:33:24
+> 更新时间：2026-05-07 22:43:24
 
-**Progress**: `[████████████████░░░░]` 561/672
-- completed: **561** | running: 15 | pending: 96 | failed: 0 | oom: 0
-- elapsed: 8:40:00 | ETA: 1:42:53
+**Progress**: `[█████████████████░░░]` 595/672
+- completed: **595** | running: 13 | pending: 64 | failed: 0 | oom: 0
+- elapsed: 10:50:01 | ETA: 1:24:07
 
 ## Per-Dataset
 
@@ -17,10 +17,10 @@
 | dnc_email | 1866 | 56/56 | 0 | 0 |
 | email_eu | 986 | 56/56 | 0 | 0 |
 | epinions | 75879 | 56/56 | 0 | 0 |
-| slashdot | 77350 | 52/56 | 0 | 0 |
-| sx_askubuntu | 157222 | 8/56 | 0 | 0 |
+| slashdot | 77350 | 56/56 | 0 | 0 |
+| sx_askubuntu | 157222 | 36/56 | 0 | 0 |
 | sx_mathoverflow | 24759 | 56/56 | 0 | 0 |
-| sx_superuser | 192409 | 2/56 | 0 | 0 |
+| sx_superuser | 192409 | 4/56 | 0 | 0 |
 | wiki_vote | 7115 | 56/56 | 0 | 0 |
 
 ## All Cells
@@ -555,78 +555,78 @@
 | `slashdot_gnn_concat_h8_s2` | completed | 549s | 0 |
 | `slashdot_gnn_concat_h8_s3` | completed | 541s | 0 |
 | `slashdot_gnn_concat_h8_s42` | completed | 549s | 0 |
-| `slashdot_gnn_h32_s1` | running | 475s | 0 |
-| `slashdot_gnn_h32_s2` | running | 479s | 0 |
-| `slashdot_gnn_h32_s3` | running | 473s | 0 |
-| `slashdot_gnn_h32_s42` | running | 471s | 0 |
-| `slashdot_gnn_sum_s1` | completed | 499s | 0 |
-| `slashdot_gnn_sum_s2` | completed | 494s | 0 |
-| `slashdot_gnn_sum_s3` | completed | 489s | 0 |
-| `slashdot_gnn_sum_s42` | completed | 488s | 0 |
-| `slashdot_gnn_sum_h8_s1` | completed | 502s | 0 |
-| `slashdot_gnn_sum_h8_s2` | completed | 504s | 0 |
-| `slashdot_gnn_sum_h8_s3` | completed | 499s | 0 |
-| `slashdot_gnn_sum_h8_s42` | completed | 500s | 0 |
-| `slashdot_graphsage_emb_s1` | completed | 486s | 0 |
-| `slashdot_graphsage_emb_s2` | completed | 487s | 0 |
-| `slashdot_graphsage_emb_s3` | completed | 481s | 0 |
-| `slashdot_graphsage_emb_s42` | completed | 478s | 0 |
-| `slashdot_jaccard_s1` | completed | 309s | 0 |
-| `slashdot_jaccard_s2` | completed | 307s | 0 |
-| `slashdot_jaccard_s3` | completed | 305s | 0 |
-| `slashdot_jaccard_s42` | completed | 300s | 0 |
-| `slashdot_pa_s1` | completed | 299s | 0 |
-| `slashdot_pa_s2` | completed | 298s | 0 |
-| `slashdot_pa_s3` | completed | 291s | 0 |
-| `slashdot_pa_s42` | completed | 288s | 0 |
-| `slashdot_random_s1` | completed | 290s | 0 |
-| `slashdot_random_s2` | completed | 292s | 0 |
-| `slashdot_random_s3` | completed | 286s | 0 |
-| `slashdot_random_s42` | completed | 282s | 0 |
-| `slashdot_seal_s1` | completed | 671s | 0 |
-| `slashdot_seal_s2` | completed | 669s | 0 |
-| `slashdot_seal_s3` | completed | 658s | 0 |
-| `slashdot_seal_s42` | completed | 668s | 0 |
-| `sx_askubuntu_aa_s1` | completed | 1589s | 0 |
-| `sx_askubuntu_aa_s2` | completed | 1594s | 0 |
-| `sx_askubuntu_aa_s3` | completed | 1586s | 0 |
-| `sx_askubuntu_aa_s42` | completed | 1585s | 0 |
-| `sx_askubuntu_cn_s1` | pending | 1007s | 1 |
-| `sx_askubuntu_cn_s2` | pending | 1006s | 1 |
-| `sx_askubuntu_cn_s3` | pending | 1003s | 1 |
-| `sx_askubuntu_cn_s42` | pending | 998s | 1 |
-| `sx_askubuntu_gat_emb_s1` | pending | 57s | 1 |
-| `sx_askubuntu_gat_emb_s2` | pending | 64s | 1 |
-| `sx_askubuntu_gat_emb_s3` | pending | 64s | 1 |
-| `sx_askubuntu_gat_emb_s42` | pending | 56s | 1 |
-| `sx_askubuntu_gnn_s1` | pending | — | -2 |
-| `sx_askubuntu_gnn_s2` | pending | — | -2 |
-| `sx_askubuntu_gnn_s3` | pending | — | -2 |
-| `sx_askubuntu_gnn_s42` | pending | — | -2 |
-| `sx_askubuntu_gnn_concat_s1` | completed | 2163s | 0 |
-| `sx_askubuntu_gnn_concat_s2` | running | — | -2 |
-| `sx_askubuntu_gnn_concat_s3` | running | — | -2 |
-| `sx_askubuntu_gnn_concat_s42` | running | — | -2 |
-| `sx_askubuntu_gnn_concat_h8_s1` | pending | 7s | 1 |
-| `sx_askubuntu_gnn_concat_h8_s2` | completed | 2161s | 0 |
-| `sx_askubuntu_gnn_concat_h8_s3` | completed | 2161s | 0 |
-| `sx_askubuntu_gnn_concat_h8_s42` | completed | 2147s | 0 |
-| `sx_askubuntu_gnn_h32_s1` | running | — | -2 |
-| `sx_askubuntu_gnn_h32_s2` | pending | — | -2 |
-| `sx_askubuntu_gnn_h32_s3` | pending | — | -2 |
-| `sx_askubuntu_gnn_h32_s42` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_s1` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_s2` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_s3` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_s42` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_h8_s1` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_h8_s2` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_h8_s3` | pending | — | -2 |
-| `sx_askubuntu_gnn_sum_h8_s42` | pending | — | -2 |
-| `sx_askubuntu_graphsage_emb_s1` | pending | — | -2 |
-| `sx_askubuntu_graphsage_emb_s2` | pending | — | -2 |
-| `sx_askubuntu_graphsage_emb_s3` | pending | — | -2 |
-| `sx_askubuntu_graphsage_emb_s42` | pending | — | -2 |
+| `slashdot_gnn_h32_s1` | completed | 512s | 0 |
+| `slashdot_gnn_h32_s2` | completed | 509s | 0 |
+| `slashdot_gnn_h32_s3` | completed | 509s | 0 |
+| `slashdot_gnn_h32_s42` | completed | 511s | 0 |
+| `slashdot_gnn_sum_s1` | completed | 367s | 0 |
+| `slashdot_gnn_sum_s2` | completed | 364s | 0 |
+| `slashdot_gnn_sum_s3` | completed | 369s | 0 |
+| `slashdot_gnn_sum_s42` | completed | 369s | 0 |
+| `slashdot_gnn_sum_h8_s1` | completed | 383s | 0 |
+| `slashdot_gnn_sum_h8_s2` | completed | 382s | 0 |
+| `slashdot_gnn_sum_h8_s3` | completed | 377s | 0 |
+| `slashdot_gnn_sum_h8_s42` | completed | 381s | 0 |
+| `slashdot_graphsage_emb_s1` | completed | 368s | 0 |
+| `slashdot_graphsage_emb_s2` | completed | 365s | 0 |
+| `slashdot_graphsage_emb_s3` | completed | 360s | 0 |
+| `slashdot_graphsage_emb_s42` | completed | 362s | 0 |
+| `slashdot_jaccard_s1` | completed | 142s | 0 |
+| `slashdot_jaccard_s2` | completed | 139s | 0 |
+| `slashdot_jaccard_s3` | completed | 139s | 0 |
+| `slashdot_jaccard_s42` | completed | 139s | 0 |
+| `slashdot_pa_s1` | completed | 137s | 0 |
+| `slashdot_pa_s2` | completed | 138s | 0 |
+| `slashdot_pa_s3` | completed | 135s | 0 |
+| `slashdot_pa_s42` | completed | 140s | 0 |
+| `slashdot_random_s1` | completed | 132s | 0 |
+| `slashdot_random_s2` | completed | 135s | 0 |
+| `slashdot_random_s3` | completed | 132s | 0 |
+| `slashdot_random_s42` | completed | 130s | 0 |
+| `slashdot_seal_s1` | completed | 335s | 0 |
+| `slashdot_seal_s2` | completed | 340s | 0 |
+| `slashdot_seal_s3` | completed | 342s | 0 |
+| `slashdot_seal_s42` | completed | 340s | 0 |
+| `sx_askubuntu_aa_s1` | completed | 754s | 0 |
+| `sx_askubuntu_aa_s2` | completed | 753s | 0 |
+| `sx_askubuntu_aa_s3` | completed | 750s | 0 |
+| `sx_askubuntu_aa_s42` | completed | 748s | 0 |
+| `sx_askubuntu_cn_s1` | completed | 764s | 0 |
+| `sx_askubuntu_cn_s2` | completed | 772s | 0 |
+| `sx_askubuntu_cn_s3` | completed | 767s | 0 |
+| `sx_askubuntu_cn_s42` | completed | 765s | 0 |
+| `sx_askubuntu_gat_emb_s1` | completed | 1243s | 0 |
+| `sx_askubuntu_gat_emb_s2` | completed | 1248s | 0 |
+| `sx_askubuntu_gat_emb_s3` | completed | 1244s | 0 |
+| `sx_askubuntu_gat_emb_s42` | completed | 1244s | 0 |
+| `sx_askubuntu_gnn_s1` | completed | 1149s | 0 |
+| `sx_askubuntu_gnn_s2` | completed | 1157s | 0 |
+| `sx_askubuntu_gnn_s3` | completed | 1149s | 0 |
+| `sx_askubuntu_gnn_s42` | completed | 1142s | 0 |
+| `sx_askubuntu_gnn_concat_s1` | completed | 1128s | 0 |
+| `sx_askubuntu_gnn_concat_s2` | completed | 1129s | 0 |
+| `sx_askubuntu_gnn_concat_s3` | completed | 1125s | 0 |
+| `sx_askubuntu_gnn_concat_s42` | completed | 1119s | 0 |
+| `sx_askubuntu_gnn_concat_h8_s1` | running | 1286s | 0 |
+| `sx_askubuntu_gnn_concat_h8_s2` | running | 2161s | 0 |
+| `sx_askubuntu_gnn_concat_h8_s3` | running | 2161s | 0 |
+| `sx_askubuntu_gnn_concat_h8_s42` | running | 2147s | 0 |
+| `sx_askubuntu_gnn_h32_s1` | completed | 2035s | 0 |
+| `sx_askubuntu_gnn_h32_s2` | completed | 1270s | 0 |
+| `sx_askubuntu_gnn_h32_s3` | completed | 1269s | 0 |
+| `sx_askubuntu_gnn_h32_s42` | completed | 1262s | 0 |
+| `sx_askubuntu_gnn_sum_s1` | completed | 1127s | 0 |
+| `sx_askubuntu_gnn_sum_s2` | completed | 1122s | 0 |
+| `sx_askubuntu_gnn_sum_s3` | completed | 1123s | 0 |
+| `sx_askubuntu_gnn_sum_s42` | completed | 1123s | 0 |
+| `sx_askubuntu_gnn_sum_h8_s1` | completed | 1150s | 0 |
+| `sx_askubuntu_gnn_sum_h8_s2` | completed | 1134s | 0 |
+| `sx_askubuntu_gnn_sum_h8_s3` | completed | 1137s | 0 |
+| `sx_askubuntu_gnn_sum_h8_s42` | completed | 1134s | 0 |
+| `sx_askubuntu_graphsage_emb_s1` | running | — | -2 |
+| `sx_askubuntu_graphsage_emb_s2` | running | — | -2 |
+| `sx_askubuntu_graphsage_emb_s3` | running | — | -2 |
+| `sx_askubuntu_graphsage_emb_s42` | running | — | -2 |
 | `sx_askubuntu_jaccard_s1` | pending | — | -2 |
 | `sx_askubuntu_jaccard_s2` | pending | — | -2 |
 | `sx_askubuntu_jaccard_s3` | pending | — | -2 |
@@ -639,10 +639,10 @@
 | `sx_askubuntu_random_s2` | pending | — | -2 |
 | `sx_askubuntu_random_s3` | pending | — | -2 |
 | `sx_askubuntu_random_s42` | pending | — | -2 |
-| `sx_askubuntu_seal_s1` | running | 297s | 1 |
-| `sx_askubuntu_seal_s2` | running | 295s | 1 |
-| `sx_askubuntu_seal_s3` | pending | 294s | 1 |
-| `sx_askubuntu_seal_s42` | pending | 295s | 1 |
+| `sx_askubuntu_seal_s1` | completed | 2020s | 0 |
+| `sx_askubuntu_seal_s2` | completed | 2018s | 0 |
+| `sx_askubuntu_seal_s3` | completed | 1277s | 0 |
+| `sx_askubuntu_seal_s42` | completed | 1273s | 0 |
 | `sx_superuser_aa_s1` | pending | — | -2 |
 | `sx_superuser_aa_s2` | pending | — | -2 |
 | `sx_superuser_aa_s3` | pending | — | -2 |
@@ -695,7 +695,7 @@
 | `sx_superuser_random_s2` | pending | — | -2 |
 | `sx_superuser_random_s3` | pending | — | -2 |
 | `sx_superuser_random_s42` | pending | — | -2 |
-| `sx_superuser_seal_s1` | pending | 213s | 1 |
+| `sx_superuser_seal_s1` | completed | 1768s | 0 |
 | `sx_superuser_seal_s2` | completed | 2980s | 0 |
 | `sx_superuser_seal_s3` | completed | 2998s | 0 |
-| `sx_superuser_seal_s42` | pending | 134s | 1 |
+| `sx_superuser_seal_s42` | completed | 1745s | 0 |
