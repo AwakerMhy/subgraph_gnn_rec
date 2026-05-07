@@ -114,7 +114,8 @@
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/bench_seal_drnl.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/test_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/bench_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
-      "PowerShell(Get-ChildItem *)"
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/orchestrator.py --spec configs/sweep_spec_ir40_constlr5e5_multiseed_bidir.yaml --dry_run 2>&1 | Select-Object -Last 20)"
     ]
   }
 }
