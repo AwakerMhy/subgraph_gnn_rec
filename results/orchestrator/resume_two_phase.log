@@ -1,0 +1,7 @@
+[phase1] Held 350 cells for big datasets
+[phase1] Running wiki_vote (19 cells), workers=1 (serial)
+[orchestrator] sweep=ir40_constlr5e5_multiseed_bidir  cells=840  resume=True  dry_run=False  workers=1
+[orchestrator] ledger: {'completed': 469, 'hold': 350, 'pending': 21}
+  [skip ] 469 already-completed cells
+
+  [queue] wiki_vote_graphsage_emb_s42  n_nodes=7115

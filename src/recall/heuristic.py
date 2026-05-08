@@ -1,15 +1,15 @@
 """src/recall/heuristic.py — 启发式召回器（CN + AA）
 
-召回语义（有向图，社交推荐方向：预测 u → v）：
-    中间节点 z 被定义为：z ∈ N_out(u,t) 且 v ∈ N_out(z,t)
-    即"u 关注的人 z，z 也关注 v"——典型的"朋友的朋友"路径。
+召回语义（有向图，N_bidir = N_out ∪ N_in）：
+    中间节点 z 被定义为：z ∈ N_bidir(u,t)，候选 v ∈ N_bidir(z,t)。
+    与 loop.py 的打分函数保持一致（均用无向邻居集合）。
 
-CommonNeighbors score:  |{z : z ∈ N_out(u) ∧ v ∈ N_out(z)}|
-AdamicAdar score:       Σ_{z} 1 / log(|N_out(z)| + 2)  （对高出度中间节点降权）
+CommonNeighbors score:  |{z : z ∈ N_bidir(u) ∧ v ∈ N_bidir(z)}|
+AdamicAdar score:       Σ_{z} 1 / log(|N_bidir(z)| + 2)  （对高度节点降权）
 
 批量预计算（precompute_for_users）：
-    1 次 scipy 稀疏 matmul A[users] @ A.T 替代 |users| 次 set intersection，
-    适合在线场景每轮 100-400 个活跃用户的批量查询。
+    大图：1 次 A_sym[users] @ A_sym 替代 |users| 次 set intersection，
+    A_sym = clip(A + A^T, 0, 1)；适合在线场景每轮 100-400 个活跃用户。
 """
 from __future__ import annotations
 
@@ -85,11 +85,13 @@ def _two_hop_bidir_scores(
     u: int,
     cutoff_time: float,
     time_adj: "TimeAdjacency",
+    use_adamic_adar: bool = False,
 ) -> dict[int, float]:
-    """双向 2-hop 候选集（小图 fallback）。
+    """双向 2-hop 候选集得分（小图 fallback）。
 
     N_bidir(u) = N_out(u) ∪ N_in(u)；候选 v 满足 ∃z∈N_bidir(u) 使 v∈N_bidir(z)。
     排除条件：v==u 或 u→v 已存在（v∈N_out(u)）。
+    use_adamic_adar=True 时权重为 1/log(|N_bidir(z)|+2)，否则为 1.0。
     """
     n_out_u: set[int] = set(time_adj.out_neighbors(u, cutoff_time))
     n_in_u: set[int] = set(time_adj.in_neighbors(u, cutoff_time))
@@ -100,9 +102,10 @@ def _two_hop_bidir_scores(
     scores: dict[int, float] = {}
     for z in n1:
         z_bidir = set(time_adj.out_neighbors(z, cutoff_time)) | set(time_adj.in_neighbors(z, cutoff_time))
+        weight = 1.0 / math.log(len(z_bidir) + 2) if use_adamic_adar else 1.0
         for v in z_bidir:
             if v not in exclude:
-                scores[v] = scores.get(v, 0.0) + 1.0
+                scores[v] = scores.get(v, 0.0) + weight
     return scores
 
 
@@ -114,13 +117,17 @@ _SPARSE_MATMUL_THRESHOLD = 10_000
 # ── CommonNeighborsRecall ─────────────────────────────────────────────────────
 
 class CommonNeighborsRecall(RecallBase):
-    """基于共同邻居数的召回器，支持批量 sparse matmul 预计算。"""
+    """基于共同邻居数的召回器，支持批量 sparse matmul 预计算。
+
+    使用 N_bidir = N_out ∪ N_in 定义邻居，与 loop.py 打分保持一致。
+    """
 
     def __init__(self, time_adj: "TimeAdjacency", n_nodes: int) -> None:
         self._time_adj = time_adj
         self._n_nodes = n_nodes
-        self._A = _build_sparse_adj(time_adj, n_nodes)   # scipy CSR or None
-        self._cache: dict[int, np.ndarray] = {}           # user → CN scores (float32, shape n)
+        self._A = _build_sparse_adj(time_adj, n_nodes)        # 有向 CSR（供子类使用）
+        self._A_sym = _build_sparse_adj_sym(time_adj, n_nodes) # 对称 CSR（CN 计算用）
+        self._cache: dict[int, np.ndarray] = {}
         self._last_n_edges: int = -1
 
     # ── 图更新 ────────────────────────────────────────────────────────────────
@@ -133,22 +140,21 @@ class CommonNeighborsRecall(RecallBase):
         self._last_n_edges = cur_edges
         self._cache.clear()
         self._A = _build_sparse_adj(self._time_adj, self._n_nodes)
+        self._A_sym = _build_sparse_adj_sym(self._time_adj, self._n_nodes)
 
     # ── 批量预计算（loop.py 中自动调用）──────────────────────────────────────
 
     def precompute_for_users(self, users: list[int]) -> None:
-        """小图（n<=10k）逐用户 set intersection；大图 1 次 sparse matmul。"""
+        """小图（n<=10k）逐用户 set intersection；大图 1 次 A_sym @ A_sym。"""
         if not users:
             return
-        if self._A is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
-            # 小图：逐用户计算，避免 todense() 的 O(n²) 内存开销
+        if self._A_sym is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
             self._cache = {}
             for u in users:
-                self._cache[u] = None   # 标记已处理，candidates() 走 fallback
+                self._cache[u] = None
             return
-        # 大图：1 次 A[users] @ A，缓存 dense score 行
         users_arr = np.array(users, dtype=np.int32)
-        CN = self._A[users_arr].dot(self._A)
+        CN = self._A_sym[users_arr].dot(self._A_sym)
         CN_dense = np.asarray(CN.todense(), dtype=np.float32)
         self._cache = {u: CN_dense[i] for i, u in enumerate(users)}
 
@@ -157,7 +163,6 @@ class CommonNeighborsRecall(RecallBase):
     def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
         scores = self._cache.get(u)
         if scores is not None:
-            # 大图路径：dense score 向量
             exclude = set(self._time_adj.out_neighbors(u)) | {u}
             nonzero = np.where(scores > 0)[0]
             cands = [(int(v), float(scores[v])) for v in nonzero if v not in exclude]
@@ -165,8 +170,7 @@ class CommonNeighborsRecall(RecallBase):
                 return []
             cands.sort(key=lambda x: -x[1])
             return cands[:top_k]
-        # 小图路径（scores is None 或 u 不在 cache）：逐用户 set intersection
-        scores_d = _two_hop_scores(u, cutoff_time, self._time_adj, use_adamic_adar=False)
+        scores_d = _two_hop_bidir_scores(u, cutoff_time, self._time_adj, use_adamic_adar=False)
         if not scores_d:
             return []
         return sorted(scores_d.items(), key=lambda x: -x[1])[:top_k]
@@ -175,15 +179,27 @@ class CommonNeighborsRecall(RecallBase):
 # ── TwoHopRandomRecall ───────────────────────────────────────────────────────
 
 class TwoHopRandomRecall(CommonNeighborsRecall):
-    """2-hop 候选池随机截断——彻底去除 CN 分偏置，用随机采样替代 top-k by score。
+    """2-hop 候选池随机截断——使用有向出边 2-hop（N_out only），随机采样。
 
-    与 CommonNeighborsRecall 的唯一区别：candidates() 从所有 2-hop 邻居中
-    随机取 top_k 个（分数统一置 1.0），不按 CN 数量排序。
+    保留有向候选语义（区别于 TwoHopBidirRandomRecall 的双向版本）。
+    precompute_for_users 覆盖父类，使用有向邻接矩阵 self._A。
     """
 
     def __init__(self, time_adj: "TimeAdjacency", n_nodes: int, seed: int = 42) -> None:
         super().__init__(time_adj, n_nodes)
         self._rng = np.random.default_rng(seed)
+
+    def precompute_for_users(self, users: list[int]) -> None:
+        """使用有向 A（N_out only），保持原始 two_hop_random 语义。"""
+        if not users:
+            return
+        if self._A is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
+            self._cache = {u: None for u in users}
+            return
+        users_arr = np.array(users, dtype=np.int32)
+        CN = self._A[users_arr].dot(self._A)
+        CN_dense = np.asarray(CN.todense(), dtype=np.float32)
+        self._cache = {u: CN_dense[i] for i, u in enumerate(users)}
 
     def candidates(self, u: int, cutoff_time: float, top_k: int) -> list[tuple[int, float]]:
         scores = self._cache.get(u)
@@ -296,14 +312,14 @@ class GlobalRandomRecall(RecallBase):
 class AdamicAdarRecall(RecallBase):
     """基于 Adamic-Adar 指数的召回器，支持批量 sparse matmul 预计算。
 
-    AA(u, v) = Σ_{z ∈ N_out(u) ∩ N_in(v)} 1 / log(|N_out(z)| + 2)
-             = (A[u] @ diag(w) @ A.T)[v]，  w[z] = 1/log(deg_out(z)+2)
+    AA(u, v) = Σ_{z ∈ N_bidir(u) ∩ N_bidir(v)} 1 / log(|N_bidir(z)| + 2)
+             = (A_sym[u] @ diag(w) @ A_sym)[v]，  w[z] = 1/log(deg_bidir(z)+2)
     """
 
     def __init__(self, time_adj: "TimeAdjacency", n_nodes: int) -> None:
         self._time_adj = time_adj
         self._n_nodes = n_nodes
-        self._A = _build_sparse_adj(time_adj, n_nodes)
+        self._A_sym = _build_sparse_adj_sym(time_adj, n_nodes)
         self._cache: dict[int, np.ndarray] = {}
         self._last_n_edges: int = -1
 
@@ -314,20 +330,20 @@ class AdamicAdarRecall(RecallBase):
             return
         self._last_n_edges = cur_edges
         self._cache.clear()
-        self._A = _build_sparse_adj(self._time_adj, self._n_nodes)
+        self._A_sym = _build_sparse_adj_sym(self._time_adj, self._n_nodes)
 
     def precompute_for_users(self, users: list[int]) -> None:
-        """小图（n<=10k）逐用户 set intersection；大图 1 次 sparse matmul。"""
+        """小图（n<=10k）逐用户 set intersection；大图 1 次 A_sym @ diag(w) @ A_sym。"""
         if not users:
             return
-        if self._A is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
+        if self._A_sym is None or self._n_nodes <= _SPARSE_MATMUL_THRESHOLD:
             self._cache = {u: None for u in users}
             return
-        deg_out = np.asarray(self._A.sum(axis=1)).flatten()
-        w = (1.0 / np.log(deg_out + 2)).astype(np.float32)
+        deg_bidir = np.asarray(self._A_sym.sum(axis=1)).flatten()
+        w = (1.0 / np.log(deg_bidir + 2)).astype(np.float32)
         W = _sp.diags(w)
         users_arr = np.array(users, dtype=np.int32)
-        AA = self._A[users_arr].dot(W).dot(self._A)
+        AA = self._A_sym[users_arr].dot(W).dot(self._A_sym)
         AA_dense = np.asarray(AA.todense(), dtype=np.float32)
         self._cache = {u: AA_dense[i] for i, u in enumerate(users)}
 
@@ -341,7 +357,7 @@ class AdamicAdarRecall(RecallBase):
                 return []
             cands.sort(key=lambda x: -x[1])
             return cands[:top_k]
-        scores_d = _two_hop_scores(u, cutoff_time, self._time_adj, use_adamic_adar=True)
+        scores_d = _two_hop_bidir_scores(u, cutoff_time, self._time_adj, use_adamic_adar=True)
         if not scores_d:
             return []
         return sorted(scores_d.items(), key=lambda x: -x[1])[:top_k]

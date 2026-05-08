@@ -115,7 +115,12 @@
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/test_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
       "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; $env:PYTHONPATH=\"C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn\"; cd C:\\\\Users\\\\12143\\\\Desktop\\\\pythonProject\\\\gnn; & \"C:\\\\conda\\\\envs\\\\gnn\\\\python.exe\" -u tests/bench_seal_method_a.py 2>&1 | Select-String -NotMatch \"Warning|warn|pkg_resources|outdated|requests|chardet\")",
       "PowerShell(Get-ChildItem *)",
-      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/orchestrator.py --spec configs/sweep_spec_ir40_constlr5e5_multiseed_bidir.yaml --dry_run 2>&1 | Select-Object -Last 20)"
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe scripts/orchestrator.py --spec configs/sweep_spec_ir40_constlr5e5_multiseed_bidir.yaml --dry_run 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe -m pytest tests/test_recall.py -x -q 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe -m pytest tests/test_recall.py::TestCommonNeighborsRecall::test_node_with_no_2hop_returns_empty -x -v 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe -m pytest tests/test_recall.py -x -q 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe -m pytest tests/test_recall.py -q 2>&1 | Select-Object -Last 10)",
+      "PowerShell($env:PYTHONIOENCODING=\"utf-8\"; C:\\\\conda\\\\envs\\\\gnn\\\\python.exe -m pytest tests/test_recall.py::TestBuildRecall::test_union_returns_recall_instance -v 2>&1 | Select-Object -Last 20)"
     ]
   }
 }

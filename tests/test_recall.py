@@ -93,11 +93,13 @@ class TestCommonNeighborsRecall:
         cands = r.candidates(99, 1.0, 10)  # 不存在的节点
         assert cands == []
 
-    def test_node_with_no_2hop_returns_empty(self):
-        # 节点 3 没有出边
+    def test_node_with_only_in_edges_has_bidir_candidates(self):
+        # 节点 3 无出边，但有入边 1→3, 2→3
+        # N_bidir(3)={1,2}；从 1/2 出发可到达 0,4,5 → 应有候选
         r = self._recall()
-        cands = r.candidates(3, 1.0, 10)
-        assert cands == []
+        cands_v = [v for v, _ in r.candidates(3, 1.0, 10)]
+        assert len(cands_v) > 0
+        assert 3 not in cands_v   # 自身不出现
 
 
 # ── AdamicAdarRecall ─────────────────────────────────────────────────────────
@@ -119,11 +121,11 @@ class TestAdamicAdarRecall:
         assert cands[3] > cands[4]
 
     def test_aa_score_formula_for_node3(self):
-        # z=1: N_out(1)={3,4} len=2, weight=1/log(4)
-        # z=2: N_out(2)={3,5} len=2, weight=1/log(4)
+        # z=1: N_bidir(1)={0,3,4} len=3, weight=1/log(5)
+        # z=2: N_bidir(2)={0,3,5} len=3, weight=1/log(5)
         r = self._recall()
         cands = dict(r.candidates(0, 1.0, 10))
-        expected = 2.0 / math.log(2 + 2)  # len(z_out)=2, +2 in formula
+        expected = 2.0 / math.log(3 + 2)  # bidir_deg(z)=3, +2 in formula
         assert cands[3] == pytest.approx(expected, rel=1e-5)
 
     def test_top_k_respected(self):
