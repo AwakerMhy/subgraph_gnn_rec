@@ -1,0 +1,38 @@
+=== sx_askubuntu_jaccard_s3  started 2026-05-09T00:43:59 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.5000  prec@K=0.0001  accepted=1  auc=0.4148  uauc=0.2778  loss=nan  (10.6s)
+Round    2/30  coverage=0.5000  prec@K=0.0002  accepted=3  auc=0.3897  uauc=0.5778  loss=nan  (1.7s)
+Round    3/30  coverage=0.5000  prec@K=0.0005  accepted=7  auc=0.3769  uauc=0.5556  loss=nan  (1.9s)
+Round    4/30  coverage=0.5000  prec@K=0.0005  accepted=7  auc=0.4957  uauc=0.4478  loss=nan  (2.2s)
+Round    5/30  coverage=0.5000  prec@K=0.0003  accepted=5  auc=0.4707  uauc=0.8222  loss=nan  (3.7s)
+Round    6/30  coverage=0.5001  prec@K=0.0003  accepted=5  auc=0.3651  uauc=0.6337  loss=nan  (5.1s)
+Round    7/30  coverage=0.5001  prec@K=0.0002  accepted=3  auc=0.3322  uauc=0.7778  loss=nan  (5.9s)
+Round    8/30  coverage=0.5001  prec@K=0.0003  accepted=4  auc=0.3596  uauc=0.5104  loss=nan  (6.6s)
+Round    9/30  coverage=0.5001  prec@K=0.0003  accepted=5  auc=0.4137  uauc=0.5333  loss=nan  (7.7s)
+Round   10/30  coverage=0.5001  prec@K=0.0004  accepted=6  auc=0.3885  uauc=0.6437  loss=nan  (8.4s)
+Round   11/30  coverage=0.5001  prec@K=0.0001  accepted=2  auc=0.4034  uauc=0.5556  loss=nan  (17.7s)
+Round   12/30  coverage=0.5001  prec@K=0.0003  accepted=4  auc=0.3701  uauc=0.3611  loss=nan  (9.9s)
+Round   13/30  coverage=0.5001  prec@K=0.0001  accepted=2  auc=0.3590  uauc=0.7778  loss=nan  (11.7s)
+Round   14/30  coverage=0.5001  prec@K=0.0002  accepted=3  auc=0.5207  uauc=0.3704  loss=nan  (12.3s)
+Round   15/30  coverage=0.5001  prec@K=0.0003  accepted=5  auc=0.4395  uauc=0.6000  loss=nan  (13.0s)
+Round   16/30  coverage=0.5001  prec@K=0.0000  accepted=0  loss=nan  (15.0s)
+Round   17/30  coverage=0.5001  prec@K=0.0002  accepted=3  auc=0.7125  uauc=0.8333  loss=nan  (14.3s)
+Round   18/30  coverage=0.5001  prec@K=0.0001  accepted=1  auc=0.4311  uauc=0.2222  loss=nan  (16.9s)
+Round   19/30  coverage=0.5001  prec@K=0.0001  accepted=2  auc=0.3555  uauc=0.8333  loss=nan  (17.1s)
+Round   20/30  coverage=0.5001  prec@K=0.0007  accepted=10  auc=0.4159  uauc=0.6667  loss=nan  (17.4s)
+Round   21/30  coverage=0.5001  prec@K=0.0002  accepted=3  auc=0.3670  uauc=0.0000  loss=nan  (26.2s)
+Round   22/30  coverage=0.5002  prec@K=0.0002  accepted=3  auc=0.4429  uauc=0.6878  loss=nan  (17.8s)
+Round   23/30  coverage=0.5002  prec@K=0.0003  accepted=4  auc=0.4611  uauc=0.5556  loss=nan  (21.0s)
+Round   24/30  coverage=0.5002  prec@K=0.0001  accepted=2  auc=0.3995  uauc=0.5000  loss=nan  (22.0s)
+Round   25/30  coverage=0.5002  prec@K=0.0003  accepted=5  auc=0.3809  uauc=0.6233  loss=nan  (21.3s)
+Round   26/30  coverage=0.5002  prec@K=0.0003  accepted=4  auc=0.4742  uauc=0.5185  loss=nan  (21.9s)
+Round   27/30  coverage=0.5002  prec@K=0.0002  accepted=3  auc=0.3204  uauc=0.5926  loss=nan  (23.6s)
+Round   28/30  coverage=0.5002  prec@K=0.0006  accepted=8  auc=0.3649  uauc=0.6260  loss=nan  (25.0s)
+Round   29/30  coverage=0.5002  prec@K=0.0001  accepted=2  auc=0.3606  uauc=0.5208  loss=nan  (25.4s)
+Round   30/30  coverage=0.5002  prec@K=0.0001  accepted=1  auc=0.3468  uauc=0.3333  loss=nan  (27.2s)
+
+结果已写入 results\orchestrator\runs\ir50_constlr5e5_multiseed_bidir\sx_askubuntu\jaccard_s3/rounds.csv
