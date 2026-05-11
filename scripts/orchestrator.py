@@ -200,6 +200,10 @@ class SweepSpec:
         elif method == "seal":
             cfg["model"] = {"type": "seal", "hidden_dim": hidden_dim,
                             "num_layers": 3, "label_dim": 16}
+        elif method == "seal_full":
+            cfg["model"] = {"type": "seal_full", "hidden_dim": hidden_dim,
+                            "num_layers": 3, "label_dim": 16,
+                            "k": 10, "conv1d_channels": [32, 16]}
         else:
             cfg["model"] = {"type": method}
 

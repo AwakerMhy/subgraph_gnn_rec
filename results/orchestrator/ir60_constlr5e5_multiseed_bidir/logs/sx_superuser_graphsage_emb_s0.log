@@ -1,0 +1,30 @@
+=== sx_superuser_graphsage_emb_s0  started 2026-05-10T04:59:56 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.6000  prec@K=0.0000  accepted=0  loss=0.6543  (82.5s)
+Round    2/30  coverage=0.6000  prec@K=0.0002  accepted=4  auc=0.4053  uauc=0.8333  loss=0.6537  (37.3s)
+Round    3/30  coverage=0.6000  prec@K=0.0003  accepted=5  auc=0.7559  uauc=0.5333  loss=0.6535  (30.5s)
+Round    4/30  coverage=0.6000  prec@K=0.0002  accepted=3  auc=0.6849  uauc=0.3503  loss=0.6530  (41.3s)
+Round    5/30  coverage=0.6000  prec@K=0.0004  accepted=8  auc=0.3951  uauc=0.3492  loss=0.6524  (37.4s)
+Round    6/30  coverage=0.6000  prec@K=0.0003  accepted=6  auc=0.5840  uauc=0.4074  loss=0.6519  (32.2s)
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 670, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 433, in run_online_simulation
+    recall.precompute_for_users(list(U))
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\recall\heuristic.py", line 264, in precompute_for_users
+    C_dense = np.asarray(self._A_sym[users_arr].dot(self._A_sym).todense(), dtype=np.float32)
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 959, in todense
+    return self._ascontainer(self.toarray(order=order, out=out))
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_compressed.py", line 1106, in toarray
+    out = self._process_toarray_args(order, out)
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 1327, in _process_toarray_args
+    return np.zeros(self.shape, dtype=self.dtype, order=order)
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.38 GiB for an array with shape (1924, 192409) and data type float32

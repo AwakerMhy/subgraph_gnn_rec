@@ -1,0 +1,38 @@
+=== wiki_vote_gnn_concat_s2  started 2026-05-09T22:54:04 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.6008  prec@K=0.0118  accepted=83  auc=0.5210  uauc=0.5282  loss=0.6540  (15.0s)
+Round    2/30  coverage=0.6017  prec@K=0.0129  accepted=91  auc=0.5352  uauc=0.6023  loss=0.6521  (12.7s)
+Round    3/30  coverage=0.6025  prec@K=0.0120  accepted=85  auc=0.5781  uauc=0.6459  loss=0.6502  (12.2s)
+Round    4/30  coverage=0.6032  prec@K=0.0106  accepted=75  auc=0.4858  uauc=0.6236  loss=0.6477  (12.8s)
+Round    5/30  coverage=0.6036  prec@K=0.0050  accepted=35  auc=0.4083  uauc=0.7012  loss=0.6451  (12.3s)
+Round    6/30  coverage=0.6038  prec@K=0.0034  accepted=24  auc=0.4258  uauc=0.6788  loss=0.6431  (12.4s)
+Round    7/30  coverage=0.6042  prec@K=0.0062  accepted=44  auc=0.4447  uauc=0.6613  loss=0.6412  (12.8s)
+Round    8/30  coverage=0.6046  prec@K=0.0052  accepted=37  auc=0.4084  uauc=0.5852  loss=0.6387  (13.3s)
+Round    9/30  coverage=0.6048  prec@K=0.0037  accepted=26  auc=0.3610  uauc=0.6348  loss=0.6368  (12.8s)
+Round   10/30  coverage=0.6050  prec@K=0.0025  accepted=18  auc=0.3746  uauc=0.6101  loss=0.6351  (12.1s)
+Round   11/30  coverage=0.6052  prec@K=0.0031  accepted=22  auc=0.3010  uauc=0.5707  loss=0.6328  (13.4s)
+Round   12/30  coverage=0.6054  prec@K=0.0024  accepted=17  auc=0.3027  uauc=0.6168  loss=0.6315  (11.7s)
+Round   13/30  coverage=0.6055  prec@K=0.0021  accepted=15  auc=0.2606  uauc=0.4000  loss=0.6286  (12.7s)
+Round   14/30  coverage=0.6056  prec@K=0.0011  accepted=8  auc=0.3975  uauc=0.4653  loss=0.6261  (12.9s)
+Round   15/30  coverage=0.6057  prec@K=0.0011  accepted=8  auc=0.2717  uauc=0.5139  loss=0.6243  (12.8s)
+Round   16/30  coverage=0.6057  prec@K=0.0011  accepted=8  auc=0.3170  uauc=0.6181  loss=0.6225  (13.1s)
+Round   17/30  coverage=0.6058  prec@K=0.0008  accepted=6  auc=0.4420  uauc=0.5833  loss=0.6198  (13.6s)
+Round   18/30  coverage=0.6059  prec@K=0.0010  accepted=7  auc=0.4433  uauc=0.5635  loss=0.6183  (13.2s)
+Round   19/30  coverage=0.6059  prec@K=0.0011  accepted=8  auc=0.3965  uauc=0.4792  loss=0.6166  (13.4s)
+Round   20/30  coverage=0.6060  prec@K=0.0014  accepted=10  auc=0.3797  uauc=0.5062  loss=0.6154  (12.9s)
+Round   21/30  coverage=0.6061  prec@K=0.0008  accepted=6  auc=0.4531  uauc=0.4630  loss=0.6127  (14.1s)
+Round   22/30  coverage=0.6062  prec@K=0.0011  accepted=8  auc=0.5750  uauc=0.5694  loss=0.6110  (13.0s)
+Round   23/30  coverage=0.6063  prec@K=0.0018  accepted=13  auc=0.5414  uauc=0.5043  loss=0.6100  (12.9s)
+Round   24/30  coverage=0.6064  prec@K=0.0014  accepted=10  auc=0.6106  uauc=0.4667  loss=0.6085  (13.4s)
+Round   25/30  coverage=0.6065  prec@K=0.0021  accepted=15  auc=0.5927  uauc=0.6185  loss=0.6070  (13.3s)
+Round   26/30  coverage=0.6066  prec@K=0.0014  accepted=10  auc=0.5597  uauc=0.5056  loss=0.6042  (13.8s)
+Round   27/30  coverage=0.6067  prec@K=0.0016  accepted=11  auc=0.5264  uauc=0.5253  loss=0.6038  (13.1s)
+Round   28/30  coverage=0.6069  prec@K=0.0018  accepted=13  auc=0.5337  uauc=0.5707  loss=0.6027  (13.1s)
+Round   29/30  coverage=0.6069  prec@K=0.0006  accepted=4  auc=0.4530  uauc=0.4861  loss=0.6008  (13.0s)
+Round   30/30  coverage=0.6070  prec@K=0.0011  accepted=8  auc=0.5683  uauc=0.4861  loss=0.5997  (12.6s)
+
+结果已写入 results\orchestrator\runs\ir60_constlr5e5_multiseed_bidir\wiki_vote\gnn_concat_s2/rounds.csv

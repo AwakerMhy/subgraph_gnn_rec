@@ -1,0 +1,38 @@
+=== bitcoin_alpha_gnn_h32_s0  started 2026-05-10T17:49:08 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.3030  prec@K=0.0209  accepted=73  auc=0.7937  uauc=0.6402  loss=0.6985  (4.5s)
+Round    2/30  coverage=0.3061  prec@K=0.0215  accepted=75  auc=0.7753  uauc=0.6562  loss=0.6976  (3.4s)
+Round    3/30  coverage=0.3092  prec@K=0.0210  accepted=75  auc=0.8121  uauc=0.5727  loss=0.6969  (3.9s)
+Round    4/30  coverage=0.3131  prec@K=0.0265  accepted=94  auc=0.8029  uauc=0.6917  loss=0.6966  (3.8s)
+Round    5/30  coverage=0.3158  prec@K=0.0180  accepted=65  auc=0.8526  uauc=0.5668  loss=0.6965  (3.9s)
+Round    6/30  coverage=0.3183  prec@K=0.0175  accepted=61  auc=0.8213  uauc=0.6575  loss=0.6960  (3.9s)
+Round    7/30  coverage=0.3217  prec@K=0.0233  accepted=82  auc=0.8503  uauc=0.5843  loss=0.6951  (4.0s)
+Round    8/30  coverage=0.3251  prec@K=0.0235  accepted=82  auc=0.8366  uauc=0.6629  loss=0.6949  (4.1s)
+Round    9/30  coverage=0.3282  prec@K=0.0216  accepted=77  auc=0.7505  uauc=0.6698  loss=0.6944  (4.1s)
+Round   10/30  coverage=0.3309  prec@K=0.0181  accepted=64  auc=0.8172  uauc=0.6737  loss=0.6942  (4.1s)
+Round   11/30  coverage=0.3338  prec@K=0.0201  accepted=70  auc=0.8196  uauc=0.6777  loss=0.6934  (4.2s)
+Round   12/30  coverage=0.3365  prec@K=0.0185  accepted=65  auc=0.8107  uauc=0.6914  loss=0.6927  (3.9s)
+Round   13/30  coverage=0.3384  prec@K=0.0132  accepted=46  auc=0.7868  uauc=0.6234  loss=0.6923  (3.7s)
+Round   14/30  coverage=0.3412  prec@K=0.0192  accepted=68  auc=0.6820  uauc=0.6328  loss=0.6917  (4.1s)
+Round   15/30  coverage=0.3435  prec@K=0.0164  accepted=57  auc=0.7723  uauc=0.6588  loss=0.6911  (4.2s)
+Round   16/30  coverage=0.3455  prec@K=0.0133  accepted=47  auc=0.7133  uauc=0.6515  loss=0.6907  (4.0s)
+Round   17/30  coverage=0.3471  prec@K=0.0109  accepted=39  auc=0.7879  uauc=0.6588  loss=0.6906  (4.2s)
+Round   18/30  coverage=0.3484  prec@K=0.0088  accepted=31  auc=0.7115  uauc=0.7009  loss=0.6895  (3.9s)
+Round   19/30  coverage=0.3507  prec@K=0.0156  accepted=55  auc=0.6674  uauc=0.7223  loss=0.6891  (4.2s)
+Round   20/30  coverage=0.3529  prec@K=0.0158  accepted=55  auc=0.7195  uauc=0.6939  loss=0.6888  (3.8s)
+Round   21/30  coverage=0.3550  prec@K=0.0140  accepted=49  auc=0.6905  uauc=0.7112  loss=0.6880  (3.8s)
+Round   22/30  coverage=0.3570  prec@K=0.0139  accepted=49  auc=0.6645  uauc=0.6383  loss=0.6876  (3.7s)
+Round   23/30  coverage=0.3588  prec@K=0.0121  accepted=43  auc=0.6083  uauc=0.7956  loss=0.6872  (3.9s)
+Round   24/30  coverage=0.3604  prec@K=0.0110  accepted=39  auc=0.5272  uauc=0.6325  loss=0.6865  (3.7s)
+Round   25/30  coverage=0.3625  prec@K=0.0147  accepted=52  auc=0.5316  uauc=0.7541  loss=0.6862  (3.9s)
+Round   26/30  coverage=0.3645  prec@K=0.0140  accepted=48  auc=0.5308  uauc=0.7917  loss=0.6856  (3.6s)
+Round   27/30  coverage=0.3666  prec@K=0.0143  accepted=51  auc=0.4961  uauc=0.7781  loss=0.6850  (4.0s)
+Round   28/30  coverage=0.3681  prec@K=0.0104  accepted=37  auc=0.4876  uauc=0.7258  loss=0.6844  (3.7s)
+Round   29/30  coverage=0.3696  prec@K=0.0101  accepted=36  auc=0.4430  uauc=0.6921  loss=0.6836  (4.1s)
+Round   30/30  coverage=0.3715  prec@K=0.0124  accepted=44  auc=0.4161  uauc=0.8601  loss=0.6834  (4.1s)
+
+结果已写入 results\orchestrator\runs\ir30_constlr5e5_multiseed_bidir\bitcoin_alpha\gnn_h32_s0/rounds.csv

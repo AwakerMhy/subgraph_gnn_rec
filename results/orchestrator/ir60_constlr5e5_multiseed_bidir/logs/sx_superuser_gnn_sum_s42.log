@@ -1,0 +1,33 @@
+=== sx_superuser_gnn_sum_s42  started 2026-05-10T04:43:09 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.6000  prec@K=0.0002  accepted=3  auc=0.7903  uauc=1.0000  loss=0.7069  (67.8s)
+Round    2/30  coverage=0.6000  prec@K=0.0005  accepted=9  auc=0.6537  uauc=0.7944  loss=0.7052  (28.6s)
+Round    3/30  coverage=0.6000  prec@K=0.0007  accepted=12  auc=0.5402  uauc=0.6435  loss=0.7036  (32.8s)
+Round    4/30  coverage=0.6000  prec@K=0.0009  accepted=16  auc=0.5980  uauc=0.8014  loss=0.7007  (31.4s)
+Round    5/30  coverage=0.6001  prec@K=0.0002  accepted=4  auc=0.8419  uauc=0.6875  loss=0.6994  (35.8s)
+Round    6/30  coverage=0.6001  prec@K=0.0006  accepted=11  auc=0.6445  uauc=0.8500  loss=0.6975  (31.3s)
+Round    7/30  coverage=0.6001  prec@K=0.0003  accepted=5  auc=0.6942  uauc=0.8444  loss=0.6952  (39.4s)
+Round    8/30  coverage=0.6001  prec@K=0.0006  accepted=10  auc=0.5822  uauc=0.8333  loss=0.6928  (41.8s)
+Round    9/30  coverage=0.6001  prec@K=0.0004  accepted=8  auc=0.7230  uauc=0.8681  loss=0.6914  (46.8s)
+Traceback (most recent call last):
+  File "C:\conda\envs\gnn\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\conda\envs\gnn\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 670, in <module>
+    run_online_simulation(cfg)
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\online\loop.py", line 433, in run_online_simulation
+    recall.precompute_for_users(list(U))
+  File "C:\Users\12143\Desktop\pythonProject\gnn\src\recall\heuristic.py", line 264, in precompute_for_users
+    C_dense = np.asarray(self._A_sym[users_arr].dot(self._A_sym).todense(), dtype=np.float32)
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 959, in todense
+    return self._ascontainer(self.toarray(order=order, out=out))
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_compressed.py", line 1106, in toarray
+    out = self._process_toarray_args(order, out)
+  File "C:\conda\envs\gnn\lib\site-packages\scipy\sparse\_base.py", line 1327, in _process_toarray_args
+    return np.zeros(self.shape, dtype=self.dtype, order=order)
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.38 GiB for an array with shape (1924, 192409) and data type float32

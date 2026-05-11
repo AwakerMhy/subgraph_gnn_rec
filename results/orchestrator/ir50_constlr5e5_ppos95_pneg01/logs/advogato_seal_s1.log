@@ -1,0 +1,38 @@
+=== advogato_seal_s1  started 2026-05-09T16:26:11 ===
+
+C:\conda\envs\gnn\lib\site-packages\requests\__init__.py:86: RequestsDependencyWarning: Unable to find acceptable character detection dependency (chardet or charset_normalizer).
+  warnings.warn(
+C:\conda\envs\gnn\lib\site-packages\outdated\__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+Round    1/30  coverage=0.5016  prec@K=0.0257  accepted=129  auc=0.5728  uauc=0.5453  loss=0.7603  (7.7s)
+Round    2/30  coverage=0.5032  prec@K=0.0221  accepted=110  auc=0.6291  uauc=0.6167  loss=0.7614  (6.6s)
+Round    3/30  coverage=0.5048  prec@K=0.0244  accepted=121  auc=0.5887  uauc=0.5459  loss=0.7594  (7.1s)
+Round    4/30  coverage=0.5060  prec@K=0.0221  accepted=109  auc=0.5217  uauc=0.5029  loss=0.7591  (7.0s)
+Round    5/30  coverage=0.5071  prec@K=0.0217  accepted=108  auc=0.5514  uauc=0.5715  loss=0.7600  (6.9s)
+Round    6/30  coverage=0.5085  prec@K=0.0228  accepted=113  auc=0.5399  uauc=0.5259  loss=0.7604  (6.2s)
+Round    7/30  coverage=0.5100  prec@K=0.0245  accepted=123  auc=0.5926  uauc=0.5998  loss=0.7590  (7.2s)
+Round    8/30  coverage=0.5110  prec@K=0.0200  accepted=100  auc=0.5284  uauc=0.5748  loss=0.7588  (7.1s)
+Round    9/30  coverage=0.5120  prec@K=0.0197  accepted=98  auc=0.6279  uauc=0.5859  loss=0.7591  (6.9s)
+Round   10/30  coverage=0.5127  prec@K=0.0200  accepted=99  auc=0.5601  uauc=0.5777  loss=0.7582  (6.9s)
+Round   11/30  coverage=0.5137  prec@K=0.0203  accepted=102  auc=0.5111  uauc=0.4789  loss=0.7581  (7.2s)
+Round   12/30  coverage=0.5145  prec@K=0.0153  accepted=76  auc=0.5259  uauc=0.5497  loss=0.7579  (6.5s)
+Round   13/30  coverage=0.5152  prec@K=0.0172  accepted=84  auc=0.5252  uauc=0.5351  loss=0.7559  (7.1s)
+Round   14/30  coverage=0.5159  prec@K=0.0158  accepted=78  auc=0.5409  uauc=0.5735  loss=0.7561  (7.0s)
+Round   15/30  coverage=0.5168  prec@K=0.0204  accepted=101  auc=0.5320  uauc=0.5284  loss=0.7561  (7.3s)
+Round   16/30  coverage=0.5173  prec@K=0.0146  accepted=72  auc=0.5805  uauc=0.5565  loss=0.7567  (7.0s)
+Round   17/30  coverage=0.5179  prec@K=0.0173  accepted=84  auc=0.4641  uauc=0.5559  loss=0.7545  (7.3s)
+Round   18/30  coverage=0.5183  prec@K=0.0126  accepted=62  auc=0.4977  uauc=0.5106  loss=0.7555  (7.0s)
+Round   19/30  coverage=0.5190  prec@K=0.0157  accepted=77  auc=0.5442  uauc=0.5433  loss=0.7547  (7.3s)
+Round   20/30  coverage=0.5194  prec@K=0.0132  accepted=65  auc=0.4685  uauc=0.5605  loss=0.7549  (7.2s)
+Round   21/30  coverage=0.5199  prec@K=0.0145  accepted=72  auc=0.5013  uauc=0.5345  loss=0.7539  (7.6s)
+Round   22/30  coverage=0.5204  prec@K=0.0166  accepted=81  auc=0.5336  uauc=0.5483  loss=0.7538  (7.1s)
+Round   23/30  coverage=0.5209  prec@K=0.0148  accepted=73  auc=0.5543  uauc=0.4951  loss=0.7538  (6.9s)
+Round   24/30  coverage=0.5213  prec@K=0.0126  accepted=63  auc=0.4572  uauc=0.4876  loss=0.7523  (7.5s)
+Round   25/30  coverage=0.5216  prec@K=0.0122  accepted=60  auc=0.5084  uauc=0.5096  loss=0.7524  (7.0s)
+Round   26/30  coverage=0.5221  prec@K=0.0157  accepted=76  auc=0.4606  uauc=0.5836  loss=0.7518  (7.0s)
+Round   27/30  coverage=0.5225  prec@K=0.0136  accepted=66  auc=0.4613  uauc=0.5092  loss=0.7497  (7.8s)
+Round   28/30  coverage=0.5231  prec@K=0.0156  accepted=77  auc=0.5595  uauc=0.5489  loss=0.7502  (7.7s)
+Round   29/30  coverage=0.5236  prec@K=0.0137  accepted=67  auc=0.5193  uauc=0.4669  loss=0.7510  (7.5s)
+Round   30/30  coverage=0.5239  prec@K=0.0141  accepted=69  auc=0.4650  uauc=0.4900  loss=0.7494  (7.8s)
+
+结果已写入 results\orchestrator\runs\ir50_constlr5e5_ppos95_pneg01\advogato\seal_s1/rounds.csv

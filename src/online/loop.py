@@ -81,7 +81,7 @@ def _load_dataset(cfg: dict) -> tuple[pd.DataFrame, int, "torch.Tensor | None"]:
 _HEURISTIC_TYPES: frozenset[str] = frozenset({"cn", "aa", "jaccard", "pa"})
 _NO_MODEL_TYPES: frozenset[str] = frozenset({"random", "ground_truth"}) | _HEURISTIC_TYPES
 # seal / graphsage_emb / gat_emb 均通过 OnlineTrainer 走同一 GNN 打分路径
-_GNN_LIKE_TYPES: frozenset[str] = frozenset({"gnn", "seal", "graphsage_emb", "gat_emb"})
+_GNN_LIKE_TYPES: frozenset[str] = frozenset({"gnn", "seal", "seal_full", "graphsage_emb", "gat_emb"})
 
 
 def _score_heuristic(
@@ -243,6 +243,40 @@ def run_online_simulation(cfg: dict) -> pd.DataFrame:
             max_label=model_cfg.get("max_label", 50),
             scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
             node_feat_dim=node_feat_dim,
+        ).to(device)
+        optimizer = _build_optimizer(model, trainer_cfg)
+        sched_cfg = trainer_cfg.get("scheduler", {})
+        scheduler = build_scheduler(
+            optimizer,
+            total_steps=max(total_rounds // update_every, 1),
+            warmup_steps=sched_cfg.get("warmup_rounds", 5),
+            min_lr=sched_cfg.get("min_lr", 1e-5),
+            strategy=sched_cfg.get("strategy", "cosine_warmup"),
+            cycle_steps=sched_cfg.get("cycle_rounds", 25),
+        )
+        trainer = OnlineTrainer(
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            device=device,
+            max_hop=trainer_cfg.get("batch_subgraph_max_hop", 2),
+            max_neighbors=trainer_cfg.get("max_neighbors", 30),
+            node_feat=node_feat,
+            min_batch_size=trainer_cfg.get("min_batch_size", 4),
+            grad_clip=trainer_cfg.get("grad_clip", 1.0),
+            score_chunk_size=trainer_cfg.get("score_chunk_size", 512),
+            use_amp=trainer_cfg.get("use_amp", False),
+        )
+    elif model_type == "seal_full":
+        from src.baseline.seal_full import SEALFullModel  # noqa: PLC0415
+        model = SEALFullModel(
+            hidden_dim=model_cfg.get("hidden_dim", 32),
+            num_layers=model_cfg.get("num_layers", 3),
+            label_dim=model_cfg.get("label_dim", 16),
+            k=model_cfg.get("k", 10),
+            conv1d_channels=tuple(model_cfg.get("conv1d_channels", [32, 16])),
+            max_label=model_cfg.get("max_label", 50),
+            scorer_hidden_dim=model_cfg.get("scorer_hidden_dim", None),
         ).to(device)
         optimizer = _build_optimizer(model, trainer_cfg)
         sched_cfg = trainer_cfg.get("scheduler", {})
